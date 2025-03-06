@@ -40,8 +40,11 @@ class ResponseError(ResponseException):
         return super().__init__(message)
     
     
-def get_response_exception(response_object = None, message=None, exception=None):
-       
+def get_response_exception(
+        response_object = None, message=None, 
+        exception=None, response=None):
+    if response and message is None and response.reason:
+        message = response.reason
     if response_object is None:
         if exception:
             response_exception = ResponseError(exception, message)

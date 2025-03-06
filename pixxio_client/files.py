@@ -1,6 +1,6 @@
-from ._base import ResourceBase
+from ._base import ResourceBase, ResourceUploadMixin
 
-class File(ResourceBase):
+class File(ResourceBase, ResourceUploadMixin):
     
     NAME = "files"
     
@@ -12,9 +12,8 @@ class File(ResourceBase):
         return self._get(
             endpoint_base=f"{self.endpoint_base}/{id}/convert", 
             **params)
-    
-    def post(self):
-        return # todo upload
+
+        
     
     
     
