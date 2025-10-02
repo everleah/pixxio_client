@@ -8,6 +8,16 @@ This document provides information about the test environment and how to use it 
 **API Username**: api_user
 **API Key**: secretapikey!
 
+### Webhook Configuration (Future Development)
+
+⚠️ **Note**: Webhook functionality is not yet implemented in the PIXXIO client library, but the test environment provides webhook support for future development:
+
+**Webhook Username**: connector_hub
+**Webhook URL**: https://hoerl-demo.px.media/connector_hub_hook
+**Webhook Secret**: CHUBwebhook2025
+
+*This webhook endpoint can be used for testing webhook integrations and notifications when webhook functionality is added to the library.*
+
 ## Safety and Usage Guidelines
 
 ⚠️ **Important Notes:**
@@ -537,6 +547,28 @@ print(f"Base URL: {client.location_base}")
 4. **Rate Limiting**: Be respectful of API rate limits
 5. **Cleanup**: Clean up test data when possible
 
+## Future Development: Webhook Testing
+
+The test environment provides webhook support for future library enhancements:
+
+### Webhook Configuration
+```python
+# Future webhook configuration (not yet implemented)
+WEBHOOK_CONFIG = {
+    "username": "connector_hub", 
+    "url": "https://hoerl-demo.px.media/connector_hub_hook",
+    "secret": "CHUBwebhook2025"
+}
+```
+
+### Potential Webhook Use Cases
+- **File Upload Notifications**: Get notified when files are uploaded
+- **Processing Status Updates**: Receive updates on file processing jobs
+- **Collection Changes**: Monitor collection modifications
+- **User Activity**: Track user actions and events
+
+*Note: Webhook functionality would need to be implemented in the PIXXIO client library before these features become available.*
+
 ## Next Steps
 
 After testing with this environment:
@@ -546,5 +578,6 @@ After testing with this environment:
 3. **Validate type hints with mypy**
 4. **Document any issues found**
 5. **Create production examples with placeholder credentials**
+6. **Consider webhook integration for future enhancement**
 
 This test environment allows for comprehensive validation of the PIXXIO Python client library! 🎉
