@@ -30,6 +30,27 @@ cd pixxio-client
 python -m pip install -r requirements.txt
 ```
 
+## 🧪 Testing Environment
+
+A live test environment is available for testing and development:
+
+**📋 [TEST_ENVIRONMENT.md](TEST_ENVIRONMENT.md)** - Complete testing setup guide with:
+- Live demo environment credentials
+- Ready-to-run integration tests  
+- Example test scenarios
+- Safety guidelines for shared testing
+
+```python
+# Quick test with live environment
+from pixxio_client import Client
+
+client = Client.create_client(
+    "uDP9XwmExpcR6TTDobtu8qVWYs99WmDou8PTTXM22IdoWZhtO4dh5q2SMZO90F0h",
+    "hoerl-demo.px.media"
+)
+print("✅ Connected to test environment!")
+```
+
 ## 🚀 Quick Start
 
 ```python
@@ -65,6 +86,7 @@ result = files.upload_and_wait(
 |----------|-------------|
 | **[API Reference](API_REFERENCE.md)** | Complete API documentation with examples |
 | **[Developer Guide](docs/DEVELOPER_GUIDE.md)** | Architecture, patterns, and contribution guidelines |
+| **[Test Environment](TEST_ENVIRONMENT.md)** | Live test environment setup and integration tests |
 | **[Async Operations](docs/ASYNC_OPERATIONS.md)** | Job tracking and async operation examples |
 | **[Error Handling](docs/ERROR_HANDLING.md)** | Exception types and error handling patterns |
 | **[Type System](docs/TYPE_SYSTEM.md)** | Type hints and custom types documentation |

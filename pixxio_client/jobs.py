@@ -37,10 +37,10 @@ class Job(ReadOnlyResourceBase):
     def _parse_job_response(self, job_id: PIXXIOId, response: ResponseData) -> JobInfo:
         """Parse API response into JobInfo object."""
         if hasattr(response, 'status'):
-            status_str = getattr(response, 'status', 'pending')
+            status_str = getattr(response, 'status', 'pending') or 'pending'
             try:
                 status = JobStatus(status_str.lower())
-            except ValueError:
+            except (ValueError, AttributeError):
                 status = JobStatus.PENDING
         else:
             status = JobStatus.PENDING

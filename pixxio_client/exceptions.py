@@ -38,7 +38,11 @@ class ResponseException(ResponseExceptionBase):
         self.response_object = response_object
         if response_object:
             try:
-                message = response_object.errorMessage
+                # Try different possible error message field names
+                message = (getattr(response_object, 'errormessage', None) or 
+                          getattr(response_object, 'errorMessage', None) or
+                          getattr(response_object, 'message', None) or
+                          f"API error (code: {getattr(response_object, 'errorcode', 'unknown')})")
             except Exception as ex: 
                 message = f"??? invalid response object ??? ({ex})"
         else:
@@ -396,9 +400,20 @@ def get_response_exception(
     
     # Handle PIXXIO-specific business logic errors
     if response_object:
+        # Check for specific error codes
+        if hasattr(response_object, 'errorcode'):
+            error_code_num = getattr(response_object, 'errorcode', None)
+            
+            # File not found error
+            if error_code_num == 2454:
+                return NotFoundException(message, response, response_object)
+            # Authentication error
+            elif error_code_num == 15007:
+                return UnauthorizedException(message, response, response_object)
+        
         # Check for quota exceeded
         if hasattr(response_object, 'errorCode'):
-            error_code = getattr(response_object, 'errorCode', '')
+            error_code = getattr(response_object, 'errorCode', '') or ''
             
             if 'quota' in error_code.lower() or 'limit' in error_code.lower():
                 return APIQuotaExceededException(message)

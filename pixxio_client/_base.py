@@ -138,6 +138,16 @@ class ReadOnlyResourceBase:
         """
         if self.response_fields:
             params.update({"responseFields": self.response_fields})
+        
+        # Add default pagination parameters if not provided (only for list requests)
+        # Individual item requests (with ID in URL) don't need pagination
+        is_list_request = endpoint_base == self.endpoint_base
+        if is_list_request:
+            if 'page' not in params:
+                params['page'] = 1
+            if 'pageSize' not in params:
+                params['pageSize'] = 50  # Default page size
+            
         try:
             response = self.client.session.get(
                 endpoint_base,
