@@ -44,6 +44,7 @@ class Client:
             host=host, 
             authentication=Authentication(api_key))
         
+    @property
     def session(self):
         if self._session is None:
             self._session = requests.Session()
