@@ -3,7 +3,10 @@ import asyncio
 from typing import Any, Optional, Union
 
 from ._base import ReadOnlyResourceBase
-from .exceptions import get_response_exception
+from .exceptions import (
+    get_response_exception, JobTimeoutException, 
+    JobFailedException, JobAbortedException
+)
 from .pixxio_types import (
     PIXXIOId, ResponseData, JobStatus, JobInfo, 
     JobCallback, AsyncJobCallback
@@ -71,8 +74,9 @@ class Job(ReadOnlyResourceBase):
             Final JobInfo when job completes
             
         Raises:
-            TimeoutError: If job doesn't complete within timeout
-            Exception: If job fails
+            JobTimeoutException: If job doesn't complete within timeout
+            JobFailedException: If job fails during processing
+            JobAbortedException: If job was cancelled/aborted
         """
         start_time = time.time()
         
@@ -85,13 +89,13 @@ class Job(ReadOnlyResourceBase):
             if job_info.status == JobStatus.COMPLETED:
                 return job_info
             elif job_info.status == JobStatus.FAILED:
-                raise Exception(f"Job {job_id} failed: {job_info.message}")
+                raise JobFailedException(job_id, job_info.message)
             elif job_info.status == JobStatus.ABORTED:
-                raise Exception(f"Job {job_id} was aborted: {job_info.message}")
+                raise JobAbortedException(job_id)
                 
             time.sleep(poll_interval)
             
-        raise TimeoutError(f"Job {job_id} did not complete within {timeout} seconds")
+        raise JobTimeoutException(job_id, timeout)
     
     async def async_wait_for_completion(
         self,
@@ -112,8 +116,9 @@ class Job(ReadOnlyResourceBase):
             Final JobInfo when job completes
             
         Raises:
-            TimeoutError: If job doesn't complete within timeout
-            Exception: If job fails
+            JobTimeoutException: If job doesn't complete within timeout
+            JobFailedException: If job fails during processing
+            JobAbortedException: If job was cancelled/aborted
         """
         start_time = time.time()
         
@@ -126,10 +131,10 @@ class Job(ReadOnlyResourceBase):
             if job_info.status == JobStatus.COMPLETED:
                 return job_info
             elif job_info.status == JobStatus.FAILED:
-                raise Exception(f"Job {job_id} failed: {job_info.message}")
+                raise JobFailedException(job_id, job_info.message)
             elif job_info.status == JobStatus.ABORTED:
-                raise Exception(f"Job {job_id} was aborted: {job_info.message}")
+                raise JobAbortedException(job_id)
                 
             await asyncio.sleep(poll_interval)
             
-        raise TimeoutError(f"Job {job_id} did not complete within {timeout} seconds")
+        raise JobTimeoutException(job_id, timeout)

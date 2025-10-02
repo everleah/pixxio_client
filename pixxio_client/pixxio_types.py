@@ -43,8 +43,19 @@ class PIXXIOResponse:
         self.data = data
         self.success = success
 
-# Exception types for better error handling
-PIXXIOError = Exception  # Base exception type for PIXXIO-specific errors
+# Exception types for better error handling  
+# Import the enhanced exception hierarchy
+from .exceptions import (
+    PIXXIOException, HTTPException, ClientError, ServerError,
+    BadRequestException, UnauthorizedException, ForbiddenException,
+    NotFoundException, TooManyRequestsException, 
+    InternalServerErrorException, ServiceUnavailableException,
+    FileUploadException, FileTooLargeException, UnsupportedFileTypeException,
+    JobException, JobTimeoutException, JobFailedException, JobAbortedException,
+    ConnectionException, TimeoutException
+)
+
+PIXXIOError = PIXXIOException  # Alias for backwards compatibility
 
 # Authentication types
 APIKey = str  # PIXXIO API key string
