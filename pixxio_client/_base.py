@@ -171,8 +171,91 @@ class ResourceUploadMixin:
             response_object = self.post(  # type: ignore[attr-defined]
                 form_data=form_data, files=files)
         return response_object   
+
+
+class ResourceJobMixin:
+    """Mixin class providing async job tracking for resources.
     
+    This mixin requires the class to have a 'client' attribute with Job resource access.
+    Should be used with ResourceBase or its subclasses.
+    """
     
+    def _get_job_resource(self):
+        """Get Job resource instance for job tracking."""
+        from .jobs import Job  # Import here to avoid circular imports
+        return Job(self.client)  # type: ignore[attr-defined]
+    
+    def _extract_job_id(self, response: ResponseData) -> Optional[PIXXIOId]:
+        """Extract job ID from API response if present."""
+        if hasattr(response, 'jobID'):
+            return getattr(response, 'jobID')
+        elif hasattr(response, 'jobId'):
+            return getattr(response, 'jobId') 
+        elif hasattr(response, 'job_id'):
+            return getattr(response, 'job_id')
+        return None
+    
+    def post_and_wait(
+        self, 
+        timeout: int = 300,
+        poll_interval: float = 2.0,
+        **post_params: Any
+    ) -> ResponseData:
+        """Post operation and wait for completion if it returns a job ID.
+        
+        Args:
+            timeout: Maximum time to wait for job completion (seconds)
+            poll_interval: Time between job status checks (seconds) 
+            **post_params: Parameters passed to the post method
+            
+        Returns:
+            Final result data when operation completes
+        """
+        response = self.post(**post_params)  # type: ignore[attr-defined]
+        
+        job_id = self._extract_job_id(response)
+        if job_id:
+            job_resource = self._get_job_resource()
+            final_job = job_resource.wait_for_completion(
+                job_id=job_id, 
+                timeout=timeout, 
+                poll_interval=poll_interval
+            )
+            return final_job.result_data or response
+        
+        return response
+    
+    async def async_post_and_wait(
+        self,
+        timeout: int = 300, 
+        poll_interval: float = 2.0,
+        **post_params: Any
+    ) -> ResponseData:
+        """Async version of post_and_wait.
+        
+        Args:
+            timeout: Maximum time to wait for job completion (seconds)
+            poll_interval: Time between job status checks (seconds)
+            **post_params: Parameters passed to the post method
+            
+        Returns:
+            Final result data when operation completes
+        """
+        response = self.post(**post_params)  # type: ignore[attr-defined]
+        
+        job_id = self._extract_job_id(response)
+        if job_id:
+            job_resource = self._get_job_resource()
+            final_job = await job_resource.async_wait_for_completion(
+                job_id=job_id,
+                timeout=timeout,
+                poll_interval=poll_interval
+            )
+            return final_job.result_data or response
+            
+        return response
+
+
 class _ResponseObject(SimpleNamespace):
     """Custom namespace object that returns None for missing attributes."""
 
