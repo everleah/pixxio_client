@@ -9,8 +9,8 @@ class Keyword(ResourceBase, ResourceUploadMixin):
     def post(self, json_data = None, form_data=None, files=None, **params):
         return self._post(
             endpoint_base=f"{self.endpoint_base}/csv",
-            json = json_data,
-            data = form_data,
+            json_data = json_data,
+            form_data = form_data,
             files = files,
             **params)
     

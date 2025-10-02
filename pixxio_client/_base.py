@@ -3,7 +3,7 @@ import json
 from types import SimpleNamespace
 from json import JSONEncoder
 
-from exceptions import get_response_exception
+from .exceptions import get_response_exception
 
 
 class ReadOnlyResourceBase:
@@ -26,8 +26,8 @@ class ReadOnlyResourceBase:
     def set_response_field(self, response_field):
         if self.response_fields and response_field not in self.response_fields:
             self.response_fields.append(response_field)
-        else:
-            response_fields = [response_field,]
+        elif not self.response_fields:
+            self.response_fields = [response_field,]
         return len(self.response_fields)
     
     def _get(self, endpoint_base, **params):

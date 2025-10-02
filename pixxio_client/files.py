@@ -6,7 +6,7 @@ class File(ResourceBase, ResourceUploadMixin):
     
     def download(self, id=None, **params):
         if id is None:
-            self._get(
+            return self._get(
                 endpoint_base=f"{self.endpoint_base}/convert", 
                 **params)
         return self._get(
