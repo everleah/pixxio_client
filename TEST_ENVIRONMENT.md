@@ -5,7 +5,7 @@ This document provides information about the test environment and how to use it 
 ## Test Environment Details
 
 **Test System URL**: https://hoerl-demo.px.media/
-**API Username**: api:_user
+**API Username**: api_user
 **API Key**: uDP9XwmExpcR6TTDobtu8qVWYs99WmDou8PTTXM22IdoWZhtO4dh5q2SMZO90F0h
 
 ## Safety and Usage Guidelines
@@ -443,7 +443,7 @@ def main():
     print("🚀 PIXXIO Python Client Integration Tests")
     print("=" * 50)
     print(f"Test Environment: {TEST_HOST}")
-    print(f"API User: api:_user")
+    print(f"API User: api_user")
     
     # Define tests to run
     tests = [

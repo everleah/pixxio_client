@@ -44,10 +44,8 @@ A live test environment is available for testing and development:
 # Quick test with live environment
 from pixxio_client import Client
 
-client = Client.create_client(
-    "uDP9XwmExpcR6TTDobtu8qVWYs99WmDou8PTTXM22IdoWZhtO4dh5q2SMZO90F0h",
-    "hoerl-demo.px.media"
-)
+# See TEST_ENVIRONMENT.md for actual credentials
+client = Client.create_client("your-test-api-key", "test-host.pixxio.com")
 print("✅ Connected to test environment!")
 ```
 

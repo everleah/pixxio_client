@@ -277,7 +277,7 @@ def main():
     print("🚀 PIXXIO Python Client - Integration Test Suite")
     print("=" * 60)
     print(f"Test Environment: https://{TEST_HOST}")
-    print(f"API User: api:_user")
+    print(f"API User: api_user")
     print(f"Client Version: Testing latest")
     
     # Define test suite
