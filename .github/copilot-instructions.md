@@ -143,6 +143,25 @@ When implementing new resources:
 - **Complex filtering**: API supports sophisticated filter objects for searches
 - **File operations**: Upload, convert, and download with various format options
 
+## Webhook Support (Future Enhancement)
+**⚠️ Not Currently Available**: PIXXIO webhooks are not part of the current API specification or this client library.
+
+**PIXXIO Webhook System:**
+- **Admin-Level Configuration**: Webhooks can be configured in PIXXIO system (name, URL, secret, description, events)
+- **Missing API Endpoints**: No REST API endpoints for webhook management found in current specification
+- **Limited Documentation**: Webhook functionality exists but lacks comprehensive API documentation
+
+**Potential Implementation Approaches:**
+1. **Polling Pattern**: Use Jobs API to periodically check for completion status
+2. **Notification Enhancement**: Extend existing `notificationText` features  
+3. **Custom Webhook Server**: Build separate service to receive PIXXIO notifications
+4. **API Extension**: Contact PIXXIO for webhook endpoint availability
+
+**Current Notification Features:**
+- Email notifications in external shares (`notificationText`)
+- Upload confirmation messages in upload links
+- Job status tracking via `/api/v1/jobs/{id}` endpoint
+
 ## Important Notes
 - **Setup bug**: `setup.py` has `find_packages(include=["celum_client*"])` - should be `["pixxio_client*"]`
 - **No auth validation**: Invalid API keys cause runtime errors, not startup validation
