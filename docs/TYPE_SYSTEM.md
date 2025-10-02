@@ -631,6 +631,6 @@ def upload_file(
 ---
 
 For more information, see:
-- [API Reference](../API_REFERENCE.md) - Complete API documentation with types
+- [API Reference](API_REFERENCE.md) - Complete API documentation with types
 - [Developer Guide](DEVELOPER_GUIDE.md) - Architecture and development patterns
 - [Error Handling](ERROR_HANDLING.md) - Exception types and handling

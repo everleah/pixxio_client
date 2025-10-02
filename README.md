@@ -34,7 +34,7 @@ python -m pip install -r requirements.txt
 
 A live test environment is available for testing and development:
 
-**📋 [TEST_ENVIRONMENT.md](TEST_ENVIRONMENT.md)** - Complete testing setup guide with:
+**📋 [TEST_ENVIRONMENT.md](docs/TEST_ENVIRONMENT.md)** - Complete testing setup guide with:
 - Live demo environment credentials
 - Ready-to-run integration tests  
 - Example test scenarios
@@ -44,7 +44,7 @@ A live test environment is available for testing and development:
 # Quick test with live environment
 from pixxio_client import Client
 
-# See TEST_ENVIRONMENT.md for actual credentials
+# See docs/TEST_ENVIRONMENT.md for actual credentials
 client = Client.create_client("your-test-api-key", "test-host.pixxio.com")
 print("✅ Connected to test environment!")
 ```
@@ -82,9 +82,9 @@ result = files.upload_and_wait(
 
 | Document | Description |
 |----------|-------------|
-| **[API Reference](API_REFERENCE.md)** | Complete API documentation with examples |
+| **[API Reference](docs/API_REFERENCE.md)** | Complete API documentation with examples |
 | **[Developer Guide](docs/DEVELOPER_GUIDE.md)** | Architecture, patterns, and contribution guidelines |
-| **[Test Environment](TEST_ENVIRONMENT.md)** | Live test environment setup and integration tests |
+| **[Test Environment](docs/TEST_ENVIRONMENT.md)** | Live test environment setup and integration tests |
 | **[Async Operations](docs/ASYNC_OPERATIONS.md)** | Job tracking and async operation examples |
 | **[Error Handling](docs/ERROR_HANDLING.md)** | Exception types and error handling patterns |
 | **[Type System](docs/TYPE_SYSTEM.md)** | Type hints and custom types documentation |
@@ -345,7 +345,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 🆘 Support
 
-- **Documentation**: Check the [API Reference](API_REFERENCE.md) and [Developer Guide](docs/DEVELOPER_GUIDE.md)
+- **Documentation**: Check the [API Reference](docs/API_REFERENCE.md) and [Developer Guide](docs/DEVELOPER_GUIDE.md)
 - **Issues**: Use GitHub Issues for bug reports and feature requests
 - **PIXXIO Support**: Contact PIXXIO support for API-related questions
 - **Community**: Join discussions in GitHub Discussions

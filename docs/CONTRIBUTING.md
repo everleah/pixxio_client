@@ -383,7 +383,7 @@ mypy --html-report mypy_report pixxio_client/
 
 When adding new features:
 
-1. **Update API_REFERENCE.md** if adding new public API
+1. **Update docs/API_REFERENCE.md** if adding new public API
 2. **Add examples to relevant guides** (ASYNC_OPERATIONS.md, ERROR_HANDLING.md, etc.)
 3. **Update README.md** if adding major features
 4. **Create new guide documents** for substantial new functionality

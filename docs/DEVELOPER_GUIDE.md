@@ -412,7 +412,7 @@ def test_integration():
 - [ ] Updated __init__.py imports if needed  
 - [ ] Manual testing completed
 - [ ] mypy type checking passes
-- [ ] Documentation updated (API_REFERENCE.md if needed)
+- [ ] Documentation updated (docs/API_REFERENCE.md if needed)
 
 ## Architecture Decisions
 
@@ -504,7 +504,7 @@ This ensures the Python client stays synchronized with the official API specific
 ---
 
 For more specific information, see:
-- [API Reference](../API_REFERENCE.md) - Complete API documentation
+- [API Reference](API_REFERENCE.md) - Complete API documentation
 - [Async Operations](ASYNC_OPERATIONS.md) - Job tracking details
 - [Error Handling](ERROR_HANDLING.md) - Exception handling patterns
 - [Type System](TYPE_SYSTEM.md) - Type definitions and usage

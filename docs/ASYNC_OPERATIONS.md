@@ -492,6 +492,6 @@ for i in range(10):  # Check 10 times
 ---
 
 For more information, see:
-- [API Reference](../API_REFERENCE.md) - Complete API documentation
+- [API Reference](API_REFERENCE.md) - Complete API documentation
 - [Error Handling](ERROR_HANDLING.md) - Exception handling patterns
 - [Developer Guide](DEVELOPER_GUIDE.md) - Architecture and contribution guidelines

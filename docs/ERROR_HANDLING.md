@@ -1,29 +1,45 @@
 # Error Handling Guide
 
-This guide covers the comprehensive error handling system in the PIXXIO Python client library.
+This guide covers the comprehensive error handling system in the PIXXIO Python client library, including specific exception types, recovery patterns, and best practices.
 
 ## Exception Hierarchy
 
 The library provides a structured exception hierarchy for different types of errors:
 
-```python
-PIXXIOException                    # Base exception
-├── BadRequestException           # 400 Bad Request
-├── UnauthorizedException         # 401 Unauthorized  
-├── ForbiddenException           # 403 Forbidden
-├── NotFoundException            # 404 Not Found
-├── ConflictException            # 409 Conflict
-├── UnprocessableEntityException # 422 Unprocessable Entity
-├── TooManyRequestsException     # 429 Too Many Requests
-├── InternalServerErrorException # 500 Internal Server Error
-├── BadGatewayException          # 502 Bad Gateway
-├── ServiceUnavailableException  # 503 Service Unavailable
-├── GatewayTimeoutException      # 504 Gateway Timeout
-├── JobTimeoutException          # Job didn't complete in time
-├── JobFailedException           # Job execution failed
-├── FileUploadException          # File upload specific errors
-├── FileDownloadException        # File download specific errors
-└── FileConversionException      # File conversion specific errors
+```
+PIXXIOException (Base)
+├── HTTPException
+│   ├── ClientError (4xx HTTP status codes)
+│   │   ├── BadRequestException (400)
+│   │   ├── UnauthorizedException (401)
+│   │   ├── ForbiddenException (403)
+│   │   ├── NotFoundException (404)
+│   │   ├── MethodNotAllowedException (405)
+│   │   ├── ConflictException (409)
+│   │   ├── UnprocessableEntityException (422)
+│   │   └── TooManyRequestsException (429)
+│   └── ServerError (5xx HTTP status codes)
+│       ├── InternalServerErrorException (500)
+│       ├── BadGatewayException (502)
+│       ├── ServiceUnavailableException (503)
+│       └── GatewayTimeoutException (504)
+├── FileUploadException
+│   ├── FileTooLargeException
+│   └── UnsupportedFileTypeException
+├── JobException
+│   ├── JobTimeoutException
+│   ├── JobFailedException
+│   └── JobAbortedException
+├── APIQuotaExceededException
+├── ConnectionException
+│   └── TimeoutException
+├── FileDownloadException
+├── FileConversionException
+└── Legacy Exceptions (backwards compatibility)
+    ├── ResponseExceptionBase
+    ├── ResponseException
+    ├── InvalidResponseException
+    └── ResponseError
 ```
 
 ## Basic Error Handling
@@ -38,6 +54,8 @@ from pixxio_client.exceptions import (
     JobTimeoutException,      # Job timeout
     JobFailedException,       # Job failure
     FileUploadException,      # Upload errors
+    FileTooLargeException,    # File size errors
+    UnsupportedFileTypeException,  # File type errors
 )
 ```
 
@@ -64,7 +82,9 @@ except PIXXIOException as e:
 
 ## HTTP Status Code Exceptions
 
-### Authentication Errors (401)
+### Client Errors (4xx)
+
+#### Authentication Errors (401)
 
 ```python
 from pixxio_client.exceptions import UnauthorizedException
@@ -74,12 +94,13 @@ try:
     files = File(client)
     result = files.get()
     
-except UnauthorizedException:
+except UnauthorizedException as e:
+    print(f"Authentication failed: {e}")
     print("Invalid API key - check your credentials")
     # Handle: prompt for new key, refresh token, etc.
 ```
 
-### Permission Errors (403)
+#### Permission Errors (403)
 
 ```python
 from pixxio_client.exceptions import ForbiddenException
@@ -87,12 +108,13 @@ from pixxio_client.exceptions import ForbiddenException
 try:
     result = files.delete(file_id=123)
     
-except ForbiddenException:
+except ForbiddenException as e:
+    print(f"Insufficient permissions: {e}")
     print("Insufficient permissions to delete this file")
     # Handle: check user permissions, request access, etc.
 ```
 
-### Resource Not Found (404)
+#### Resource Not Found (404)
 
 ```python
 from pixxio_client.exceptions import NotFoundException
@@ -100,12 +122,13 @@ from pixxio_client.exceptions import NotFoundException
 try:
     file_info = files.get(999999)
     
-except NotFoundException:
+except NotFoundException as e:
+    print(f"Resource not found: {e}")
     print("File does not exist")
     # Handle: validate ID, show error message, etc.
 ```
 
-### Validation Errors (400, 422)
+#### Validation Errors (400, 422)
 
 ```python
 from pixxio_client.exceptions import (
@@ -119,6 +142,7 @@ try:
     
 except BadRequestException as e:
     print(f"Invalid request: {e}")
+    print(f"Status: {e.status_code}")
     # Handle: validate input, show field errors, etc.
     
 except UnprocessableEntityException as e:
@@ -126,7 +150,7 @@ except UnprocessableEntityException as e:
     # Handle: show specific validation errors, correct input, etc.
 ```
 
-### Rate Limiting (429)
+#### Rate Limiting (429)
 
 ```python
 from pixxio_client.exceptions import TooManyRequestsException
@@ -140,7 +164,13 @@ def upload_with_rate_limiting(file_path):
         try:
             return files.upload(file_path)
             
-        except TooManyRequestsException:
+        except TooManyRequestsException as e:
+            print(f"Rate limited: {e}")
+            if e.retry_after:
+                print(f"Retry after {e.retry_after} seconds")
+                time.sleep(e.retry_after)
+                continue
+                
             if attempt == max_retries - 1:
                 raise  # Final attempt failed
                 
@@ -155,7 +185,7 @@ except TooManyRequestsException:
     print("Rate limit exceeded after retries")
 ```
 
-### Server Errors (500, 502, 503, 504)
+### Server Errors (5xx)
 
 ```python
 from pixxio_client.exceptions import (
@@ -172,16 +202,29 @@ def robust_api_call(operation_func, max_retries=3):
         try:
             return operation_func()
             
-        except (InternalServerErrorException, 
-                BadGatewayException, 
-                ServiceUnavailableException,
-                GatewayTimeoutException) as e:
+        except InternalServerErrorException as e:
+            print(f"Server error: {e}")
+            if attempt == max_retries - 1:
+                raise
+            # Retry after delay or contact support
                 
+        except ServiceUnavailableException as e:
+            print(f"Service unavailable: {e}")
+            if e.retry_after:
+                time.sleep(e.retry_after)
+            elif attempt == max_retries - 1:
+                raise
+            else:
+                wait_time = (attempt + 1) * 30  # 30, 60, 90 seconds
+                print(f"Retrying in {wait_time} seconds...")
+                time.sleep(wait_time)
+            
+        except (BadGatewayException, GatewayTimeoutException) as e:
             if attempt == max_retries - 1:
                 raise  # Final attempt failed
                 
             wait_time = (attempt + 1) * 30  # 30, 60, 90 seconds
-            print(f"Server error ({e}), retrying in {wait_time} seconds...")
+            print(f"Gateway error ({e}), retrying in {wait_time} seconds...")
             time.sleep(wait_time)
 
 # Usage
@@ -191,61 +234,17 @@ except (InternalServerErrorException, ServiceUnavailableException):
     print("Server is currently unavailable")
 ```
 
-## Job-Related Exceptions
-
-### Job Timeout Handling
-
-```python
-from pixxio_client.exceptions import JobTimeoutException
-
-try:
-    result = files.upload_and_wait(
-        "/path/to/large_file.mp4",
-        timeout=300  # 5 minutes
-    )
-    
-except JobTimeoutException:
-    print("Upload timed out, but may still be processing")
-    
-    # Option 1: Continue monitoring manually
-    job_id = extract_job_id_from_last_response()  # Custom logic
-    extended_result = monitor_job_manually(job_id, timeout=1800)
-    
-    # Option 2: Accept timeout and notify user
-    notify_user("Upload is taking longer than expected")
-```
-
-### Job Failure Handling
-
-```python
-from pixxio_client.exceptions import JobFailedException
-
-try:
-    result = files.upload_and_wait("/path/to/corrupted_file.pdf")
-    
-except JobFailedException as e:
-    print(f"File processing failed: {e}")
-    
-    # Extract error details if available
-    if hasattr(e, 'job_info') and e.job_info:
-        error_details = e.job_info.error_message
-        print(f"Detailed error: {error_details}")
-    
-    # Handle based on error type
-    if "unsupported format" in str(e).lower():
-        print("File format not supported")
-    elif "corrupted" in str(e).lower():
-        print("File appears to be corrupted")
-    else:
-        print("Unknown processing error")
-```
-
 ## File Operation Exceptions
 
 ### Upload Error Handling
 
 ```python
-from pixxio_client.exceptions import FileUploadException
+from pixxio_client.exceptions import (
+    FileUploadException, 
+    FileTooLargeException, 
+    UnsupportedFileTypeException
+)
+import os
 
 def safe_file_upload(file_path, **metadata):
     try:
@@ -263,8 +262,23 @@ def safe_file_upload(file_path, **metadata):
         print("Source file not found")
         return None
         
+    except FileTooLargeException as e:
+        print(f"File too large: {e}")
+        print(f"File size: {e.file_size} bytes")
+        print(f"Max allowed: {e.max_size} bytes")
+        # Compress or split file
+        return None
+        
+    except UnsupportedFileTypeException as e:
+        print(f"Unsupported file type: {e.file_type}")
+        if e.supported_types:
+            print(f"Supported: {', '.join(e.supported_types)}")
+        # Convert to supported format
+        return None
+        
     except FileUploadException as e:
         print(f"Upload failed: {e}")
+        print(f"File: {e.file_path}")
         
         # Handle specific upload errors
         if "file too large" in str(e).lower():
@@ -322,6 +336,95 @@ except FileDownloadException as e:
     print(f"Download failed: {e}")
 ```
 
+## Job Processing Exceptions
+
+### Job Timeout and Failure Handling
+
+```python
+from pixxio_client.exceptions import JobTimeoutException, JobFailedException, JobAbortedException
+
+try:
+    result = files.upload_and_wait(
+        "/path/to/large_file.mp4",
+        timeout=300  # 5 minutes
+    )
+    
+except JobTimeoutException as e:
+    print(f"Job {e.job_id} timed out after {e.timeout}s")
+    print("Upload timed out, but may still be processing")
+    
+    # Option 1: Continue monitoring manually
+    job_id = extract_job_id_from_last_response()  # Custom logic
+    extended_result = monitor_job_manually(job_id, timeout=1800)
+    
+    # Option 2: Accept timeout and notify user
+    notify_user("Upload is taking longer than expected")
+
+# Job failure handling
+try:
+    result = files.upload_and_wait("/path/to/corrupted_file.pdf")
+    
+except JobFailedException as e:
+    print(f"Job {e.job_id} failed: {e.error_message}")
+    print(f"File processing failed: {e}")
+    
+    # Extract error details if available
+    if hasattr(e, 'job_info') and e.job_info:
+        error_details = e.job_info.error_message
+        print(f"Detailed error: {error_details}")
+    
+    # Handle based on error type
+    if "unsupported format" in str(e).lower():
+        print("File format not supported")
+    elif "corrupted" in str(e).lower():
+        print("File appears to be corrupted")
+    else:
+        print("Unknown processing error")
+
+# Job cancellation handling
+try:
+    jobs.wait_for_completion(job_id=123)
+except JobAbortedException as e:
+    print(f"Job {e.job_id} was cancelled")
+    # Restart job if needed
+```
+
+## Connection and API Quota Exceptions
+
+### Connection Exceptions
+
+```python
+from pixxio_client.exceptions import ConnectionException, TimeoutException
+
+try:
+    client = Client.create_client("key", "invalid-host.com")
+    files.get()
+except ConnectionException as e:
+    print(f"Connection failed to {e.host}: {e}")
+    # Check network and host URL
+
+try:
+    files.get()
+except TimeoutException as e:
+    print(f"Request timed out after {e.timeout_seconds}s")
+    # Increase timeout or check network
+```
+
+### API Quota Exception
+
+```python
+from pixxio_client.exceptions import APIQuotaExceededException
+
+try:
+    files.upload("file.jpg")
+except APIQuotaExceededException as e:
+    print(f"Quota exceeded for {e.quota_type}")
+    print(f"Limit: {e.limit}")
+    if e.reset_time:
+        print(f"Resets at: {e.reset_time}")
+    # Wait for reset or upgrade plan
+```
+
 ## Advanced Error Handling Patterns
 
 ### Retry with Exponential Backoff
@@ -332,7 +435,9 @@ import random
 from pixxio_client.exceptions import (
     TooManyRequestsException,
     InternalServerErrorException,
-    ServiceUnavailableException
+    ServiceUnavailableException,
+    ConnectionException,
+    ServerError
 )
 
 def exponential_backoff_retry(
@@ -359,7 +464,7 @@ def exponential_backoff_retry(
         TooManyRequestsException,
         InternalServerErrorException,
         ServiceUnavailableException,
-        ConnectionError,
+        ConnectionException,
         TimeoutError
     )
     
@@ -367,9 +472,34 @@ def exponential_backoff_retry(
         try:
             return operation_func()
             
-        except retryable_exceptions as e:
+        except TooManyRequestsException as e:
             if attempt == max_retries:
                 raise  # Final attempt failed
+                
+            if e.retry_after:
+                time.sleep(e.retry_after)
+            else:
+                delay = min(base_delay * (exponential_base ** attempt), max_delay)
+                if jitter:
+                    delay *= (0.5 + random.random() * 0.5)
+                print(f"Rate limited, retrying in {delay:.1f}s...")
+                time.sleep(delay)
+                
+        except ServiceUnavailableException as e:
+            if attempt == max_retries:
+                raise
+                
+            if e.retry_after:
+                time.sleep(e.retry_after)
+            else:
+                delay = min(base_delay * (exponential_base ** attempt), max_delay)
+                if jitter:
+                    delay *= (0.5 + random.random() * 0.5)
+                time.sleep(delay)
+                
+        except (ConnectionException, ServerError) as e:
+            if attempt == max_retries:
+                raise
                 
             # Calculate delay with exponential backoff
             delay = min(base_delay * (exponential_base ** attempt), max_delay)
@@ -430,7 +560,8 @@ class CircuitBreaker:
             
         except (InternalServerErrorException, 
                 ServiceUnavailableException,
-                GatewayTimeoutException) as e:
+                GatewayTimeoutException,
+                ConnectionException) as e:
             self._on_failure()
             raise
     
@@ -465,7 +596,6 @@ result = protected_api_call()
 
 ```python
 from contextlib import contextmanager
-from pixxio_client.exceptions import PIXXIOException
 
 @contextmanager
 def pixxio_error_handler(operation_name="API operation"):
@@ -513,9 +643,144 @@ with pixxio_error_handler("File conversion"):
     print(f"Conversion successful")
 ```
 
-## Error Response Details
+## Comprehensive Error Handling Pattern
 
-### Extracting Error Information
+```python
+def comprehensive_error_handler(operation_func, operation_name="API operation"):
+    """
+    Comprehensive error handling for all PIXXIO exception types.
+    Returns a standardized result dictionary.
+    """
+    try:
+        result = operation_func()
+        return {
+            'success': True,
+            'data': result,
+            'message': f'{operation_name} completed successfully'
+        }
+        
+    except UnauthorizedException:
+        return {
+            'success': False,
+            'error_type': 'authentication',
+            'message': 'Authentication failed. Please check your API credentials.',
+            'retry': False
+        }
+        
+    except ForbiddenException:
+        return {
+            'success': False,
+            'error_type': 'permission',
+            'message': 'Insufficient permissions for this operation.',
+            'retry': False
+        }
+        
+    except NotFoundException:
+        return {
+            'success': False,
+            'error_type': 'not_found',
+            'message': 'The requested resource was not found.',
+            'retry': False
+        }
+        
+    except TooManyRequestsException as e:
+        return {
+            'success': False,
+            'error_type': 'rate_limit',
+            'message': 'Rate limit exceeded. Please wait and try again.',
+            'retry': True,
+            'retry_after': getattr(e, 'retry_after', 60)
+        }
+        
+    except FileTooLargeException as e:
+        return {
+            'success': False,
+            'error_type': 'file_too_large',
+            'message': f'File is too large. Maximum size: {getattr(e, "max_size", "unknown")} bytes',
+            'retry': False
+        }
+        
+    except UnsupportedFileTypeException as e:
+        return {
+            'success': False,
+            'error_type': 'unsupported_file_type',
+            'message': f'File type not supported: {getattr(e, "file_type", "unknown")}',
+            'retry': False,
+            'supported_types': getattr(e, 'supported_types', [])
+        }
+        
+    except JobTimeoutException as e:
+        return {
+            'success': False,
+            'error_type': 'timeout',
+            'message': f'{operation_name} timed out but may still be processing.',
+            'retry': True,
+            'retry_after': 300,
+            'job_id': getattr(e, 'job_id', None)
+        }
+        
+    except JobFailedException as e:
+        return {
+            'success': False,
+            'error_type': 'job_failed',
+            'message': f'Processing failed: {getattr(e, "error_message", str(e))}',
+            'retry': False,
+            'job_id': getattr(e, 'job_id', None)
+        }
+        
+    except APIQuotaExceededException as e:
+        return {
+            'success': False,
+            'error_type': 'quota_exceeded',
+            'message': 'API quota exceeded.',
+            'retry': True,
+            'retry_after': getattr(e, 'reset_time', None)
+        }
+        
+    except ServiceUnavailableException:
+        return {
+            'success': False,
+            'error_type': 'service_unavailable',
+            'message': 'Service is temporarily unavailable.',
+            'retry': True,
+            'retry_after': 60
+        }
+        
+    except PIXXIOException as e:
+        return {
+            'success': False,
+            'error_type': 'api_error',
+            'message': f'API error: {str(e)}',
+            'retry': True,
+            'retry_after': 30
+        }
+        
+    except Exception as e:
+        return {
+            'success': False,
+            'error_type': 'unexpected',
+            'message': f'Unexpected error: {str(e)}',
+            'retry': False
+        }
+
+# Usage
+result = comprehensive_error_handler(
+    lambda: files.upload("/path/to/file.jpg"),
+    "File upload"
+)
+
+if result['success']:
+    print(f"Success: {result['message']}")
+    print(f"File ID: {result['data'].id}")
+else:
+    print(f"Error: {result['message']}")
+    if result.get('retry'):
+        print(f"Retry recommended after {result.get('retry_after', 60)} seconds")
+```
+
+## Exception Properties and Context
+
+All PIXXIO exceptions include these properties for detailed error analysis:
 
 ```python
 try:
@@ -526,10 +791,16 @@ except PIXXIOException as e:
     print(f"Error message: {e}")
     print(f"Error type: {type(e).__name__}")
     
-    # Detailed error information (if available)
+    # HTTP response details (if available)
+    if hasattr(e, 'status_code'):
+        print(f"HTTP status: {e.status_code}")
+    
     if hasattr(e, 'response') and e.response:
-        print(f"HTTP status: {e.response.status_code}")
         print(f"Response body: {e.response.text}")
+    
+    # Parsed response object (if available)
+    if hasattr(e, 'response_object') and e.response_object:
+        print(f"Parsed response: {e.response_object}")
     
     # Structured error data (if available)
     if hasattr(e, 'error_data') and e.error_data:
@@ -542,10 +813,14 @@ except PIXXIOException as e:
                 print(f"Field '{field}': {', '.join(errors)}")
 ```
 
-### Logging Errors
+## Error Logging and Monitoring
+
+### Structured Error Logging
 
 ```python
 import logging
+import json
+from datetime import datetime
 
 # Configure logging
 logging.basicConfig(
@@ -559,7 +834,29 @@ logging.basicConfig(
 
 logger = logging.getLogger('pixxio_client')
 
-def logged_operation(operation_func, operation_name="API operation"):
+def log_pixxio_error(e: PIXXIOException, context: dict = None):
+    """Log structured error data for analysis."""
+    error_data = {
+        "timestamp": datetime.utcnow().isoformat(),
+        "error_type": type(e).__name__,
+        "message": str(e),
+        "status_code": getattr(e, 'status_code', None),
+        "context": context or {}
+    }
+    
+    # Add exception-specific data
+    if isinstance(e, FileUploadException):
+        error_data["file_path"] = getattr(e, 'file_path', None)
+        error_data["file_size"] = getattr(e, 'file_size', None)
+    elif isinstance(e, JobException):
+        error_data["job_id"] = getattr(e, 'job_id', None)
+        error_data["job_status"] = getattr(e, 'job_status', None)
+    elif isinstance(e, TooManyRequestsException):
+        error_data["retry_after"] = getattr(e, 'retry_after', None)
+    
+    logger.error(json.dumps(error_data, indent=2))
+
+def logged_operation(operation_func, operation_name="API operation", context=None):
     """Wrapper that logs all errors for analysis."""
     try:
         logger.info(f"Starting {operation_name}")
@@ -568,12 +865,7 @@ def logged_operation(operation_func, operation_name="API operation"):
         return result
         
     except PIXXIOException as e:
-        logger.error(f"{operation_name} failed: {type(e).__name__}: {e}")
-        
-        # Log additional context
-        if hasattr(e, 'response'):
-            logger.error(f"HTTP {e.response.status_code}: {e.response.text}")
-            
+        log_pixxio_error(e, context)
         raise
         
     except Exception as e:
@@ -584,7 +876,8 @@ def logged_operation(operation_func, operation_name="API operation"):
 try:
     result = logged_operation(
         lambda: files.upload("/path/to/file.jpg"),
-        "File upload"
+        "File upload",
+        {"user_id": 123, "file_type": "image"}
     )
 except PIXXIOException:
     pass  # Already logged
@@ -595,7 +888,7 @@ except PIXXIOException:
 ### 1. Be Specific with Exception Handling
 
 ```python
-# Good: Handle specific exceptions
+# ✅ Good: Handle specific exceptions
 try:
     result = files.get(file_id)
 except NotFoundException:
@@ -605,14 +898,32 @@ except UnauthorizedException:
 except PIXXIOException as e:
     handle_general_api_error(e)
 
-# Avoid: Catching all exceptions
+# ❌ Avoid: Catching all exceptions
 try:
     result = files.get(file_id)
 except Exception as e:  # Too broad
     handle_error(e)
 ```
 
-### 2. Provide User-Friendly Error Messages
+### 2. Implement Appropriate Retry Strategies
+
+```python
+# ✅ Good: Retry transient errors with backoff
+retryable = (TooManyRequestsException, ServiceUnavailableException)
+try:
+    result = exponential_backoff_retry(lambda: files.upload("file.jpg"))
+except retryable:
+    # Handle after all retries failed
+    pass
+
+# ❌ Avoid: Retrying non-retryable errors
+try:
+    result = files.upload("file.jpg")
+except NotFoundException:  # Don't retry
+    retry_upload()  # File will still not exist
+```
+
+### 3. Provide User-Friendly Error Messages
 
 ```python
 def user_friendly_error_handler(operation_func, operation_name):
@@ -637,18 +948,56 @@ def user_friendly_error_handler(operation_func, operation_name):
             'retry': True,
             'retry_after': 60
         }
-    except JobTimeoutException:
-        return {
-            'success': False,
-            'message': f'{operation_name} is taking longer than expected. It may still complete in the background.',
-            'retry': True,
-            'retry_after': 300
-        }
 ```
 
-### 3. Implement Graceful Degradation
+### 4. Use Context Managers for Cleanup
 
 ```python
+@contextmanager
+def file_upload_context(file_path):
+    """Ensure proper cleanup even if upload fails."""
+    temp_file = None
+    try:
+        # Prepare file (e.g., compress, convert)
+        temp_file = prepare_file(file_path)
+        yield temp_file
+    except PIXXIOException as e:
+        logger.error(f"Upload failed: {e}")
+        raise
+    finally:
+        # Cleanup temporary files
+        if temp_file and os.path.exists(temp_file):
+            os.unlink(temp_file)
+
+# Usage
+with file_upload_context("/path/to/file.jpg") as prepared_file:
+    result = files.upload(prepared_file)
+```
+
+### 5. Graceful Degradation
+
+```python
+def upload_with_fallback(file_path):
+    try:
+        # Try high quality upload
+        return files.upload(file_path, quality="high")
+        
+    except FileTooLargeException:
+        # Fallback to compressed upload
+        return files.upload(file_path, quality="medium", compress=True)
+        
+    except UnsupportedFileTypeException as e:
+        if e.file_type in ["heic", "raw"]:
+            # Convert and retry
+            converted_path = convert_image(file_path, "jpg")
+            return files.upload(converted_path)
+        raise
+        
+    except APIQuotaExceededException:
+        # Queue for later processing
+        queue_upload(file_path)
+        return {"queued": True, "message": "Upload queued due to quota"}
+
 def get_file_with_fallback(file_id):
     """Get file info with fallback options."""
     try:
@@ -674,50 +1023,44 @@ def get_file_with_fallback(file_id):
         return None
 ```
 
-### 4. Monitor and Alert on Errors
+## Migration from Legacy Exceptions
+
+The enhanced exception system is backwards compatible. Legacy code continues to work:
 
 ```python
-import json
-from datetime import datetime
+# Legacy code (still works)
+try:
+    files.get()
+except ResponseException as e:
+    print(f"Error: {e}")
 
-def error_monitoring_wrapper(operation_func, operation_name):
-    """Wrapper that monitors error patterns for alerting."""
-    try:
-        return operation_func()
-    except PIXXIOException as e:
-        # Log structured error data
-        error_record = {
-            'timestamp': datetime.utcnow().isoformat(),
-            'operation': operation_name,
-            'error_type': type(e).__name__,
-            'error_message': str(e),
-            'http_status': getattr(e, 'response', {}).get('status_code'),
-        }
-        
-        # Send to monitoring system
-        send_to_monitoring(error_record)  # Custom implementation
-        
-        # Check if this indicates a service outage
-        if isinstance(e, (ServiceUnavailableException, InternalServerErrorException)):
-            check_for_service_outage()  # Custom implementation
-        
-        raise
-
-def send_to_monitoring(error_record):
-    """Send error data to monitoring system."""
-    # Implementation depends on your monitoring setup
-    # Could be: logging, metrics, alerts, etc.
-    pass
-
-def check_for_service_outage():
-    """Check error patterns to detect service outages."""
-    # Custom logic to determine if errors indicate outage
-    pass
+# Enhanced code (recommended)
+try:
+    files.get()
+except UnauthorizedException as e:
+    print(f"Auth error: {e}")
+except NotFoundException as e:
+    print(f"Not found: {e}")
+except PIXXIOException as e:
+    print(f"API error: {e}")
 ```
+
+## Summary
+
+This comprehensive error handling system provides:
+
+- **Specific Exception Types**: Handle different error scenarios appropriately
+- **Detailed Error Context**: Access HTTP status, response data, and error details
+- **Recovery Patterns**: Retry, circuit breaker, and graceful degradation strategies
+- **User-Friendly Messages**: Convert technical errors to actionable user feedback
+- **Monitoring Support**: Structured logging and error pattern detection
+- **Best Practices**: Guidelines for robust error handling implementation
+
+By following these patterns, you can build resilient applications that handle PIXXIO API errors gracefully and provide excellent user experiences even when things go wrong.
 
 ---
 
 For more information, see:
-- [API Reference](../API_REFERENCE.md) - Complete API documentation
+- [API Reference](API_REFERENCE.md) - Complete API documentation
 - [Async Operations](ASYNC_OPERATIONS.md) - Job tracking and async patterns
 - [Developer Guide](DEVELOPER_GUIDE.md) - Architecture and contribution guidelines
