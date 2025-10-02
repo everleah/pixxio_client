@@ -1,0 +1,98 @@
+# PIXXIO Client Test Suite
+
+This directory contains various test files for the PIXXIO Python client library.
+
+## Integration Tests
+
+### `integration_tests.py`
+**Main comprehensive test suite** - Run this to verify all client functionality works correctly.
+- Tests all major API endpoints (files, collections, users, etc.)
+- Validates CRUD operations, file uploads, job tracking
+- Uses live test environment (hoerl-demo.px.media)
+- Returns detailed test results with pass/fail status
+
+**Usage:**
+```bash
+python tests/integration_tests.py
+```
+
+### `quick_test.py`
+**Quick functionality test** - Fast verification that basic operations work.
+- Basic connection test
+- Simple file and user operations
+- Good for quick smoke testing
+
+**Usage:**
+```bash
+python tests/quick_test.py
+```
+
+## Debug Tests
+
+### `debug_test.py`
+**Basic debug test** - Minimal test to identify connection issues.
+- Tests client creation
+- Validates basic API connectivity
+- Useful for troubleshooting setup problems
+
+### `debug_integration.py`
+**Debug version of integration tests** - Shows detailed response structure.
+- Similar to integration_tests.py but with verbose output
+- Displays raw API responses for debugging
+- Helps understand API response formats
+
+## Specific Feature Tests
+
+### `test_auth_error.py`
+**Authentication testing** - Tests invalid API key handling.
+- Verifies proper exception types for auth failures
+- Tests error response parsing
+
+### `test_upload_params.py`
+**File upload parameter testing** - Tests file upload functionality.
+- Validates upload parameter handling
+- Tests file upload with various options
+- Temporary file creation and cleanup
+
+## Test Configuration
+
+All tests use the shared test environment:
+- **Host:** `hoerl-demo.px.media`
+- **API Key:** Configured in each test file
+- **Environment:** Live PIXXIO test system
+
+## Running Tests
+
+### Run All Integration Tests
+```bash
+# From project root
+python tests/integration_tests.py
+```
+
+### Run Quick Test
+```bash
+python tests/quick_test.py
+```
+
+### Run Specific Tests
+```bash
+python tests/debug_test.py
+python tests/test_auth_error.py
+python tests/test_upload_params.py
+```
+
+## Test Results
+
+Integration tests provide structured output:
+- ✅ Pass: Operation completed successfully  
+- ❌ Fail: Operation failed with error details
+- 🕒 Timeout: Operation timed out (may still be processing)
+
+## Notes
+
+- Tests use live API endpoints - require valid network connection
+- Some tests create temporary files that are automatically cleaned up
+- Upload tests may take longer due to file processing time
+- All tests are designed to be non-destructive to the test environment
+
+For examples of how to use the PIXXIO client library, see the `examples/` directory.

@@ -40,6 +40,15 @@ A live test environment is available for testing and development:
 - Example test scenarios
 - Safety guidelines for shared testing
 
+**🧪 [tests/](tests/)** - Complete test suite:
+```bash
+# Run comprehensive integration tests
+python tests/integration_tests.py
+
+# Quick functionality test  
+python tests/quick_test.py
+```
+
 ```python
 # Quick test with live environment
 from pixxio_client import Client
@@ -209,6 +218,12 @@ result = files.upload_and_wait(
 ```
 
 ## 🧪 Examples
+
+**📁 [examples/](examples/)** - Complete example collection:
+- `basic_usage.py` - Core functionality demonstrations
+- `advanced_async.py` - Concurrent operations and async patterns
+- `async_jobs.py` - Job tracking and monitoring examples  
+- `error_handling.py` - Exception handling patterns
 
 **Basic File Operations:**
 ```python
