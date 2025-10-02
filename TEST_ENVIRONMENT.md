@@ -6,7 +6,7 @@ This document provides information about the test environment and how to use it 
 
 **Test System URL**: https://hoerl-demo.px.media/
 **API Username**: api_user
-**API Key**: uDP9XwmExpcR6TTDobtu8qVWYs99WmDou8PTTXM22IdoWZhtO4dh5q2SMZO90F0h
+**API Key**: secretapikey!
 
 ## Safety and Usage Guidelines
 
@@ -26,7 +26,7 @@ Create a `.env` file in your project root:
 ```bash
 # .env file (don't commit this to version control)
 PIXXIO_TEST_HOST=hoerl-demo.px.media
-PIXXIO_TEST_API_KEY=uDP9XwmExpcR6TTDobtu8qVWYs99WmDou8PTTXM22IdoWZhtO4dh5q2SMZO90F0h
+PIXXIO_TEST_API_KEY=secretapikey!
 ```
 
 Load with python-dotenv:
@@ -47,7 +47,7 @@ from pixxio_client import Client
 
 # Create test client
 client = Client.create_client(
-    api_key="uDP9XwmExpcR6TTDobtu8qVWYs99WmDou8PTTXM22IdoWZhtO4dh5q2SMZO90F0h",
+    api_key="secretapikey!",
     host="hoerl-demo.px.media"
 )
 
@@ -66,7 +66,7 @@ def test_connection():
     """Test basic connection and authentication."""
     try:
         client = Client.create_client(
-            "uDP9XwmExpcR6TTDobtu8qVWYs99WmDou8PTTXM22IdoWZhtO4dh5q2SMZO90F0h",
+            "secretapikey!",
             "hoerl-demo.px.media"
         )
         
@@ -101,7 +101,7 @@ from pixxio_client.files import File
 def test_file_operations():
     """Test file upload, retrieval, and deletion."""
     client = Client.create_client(
-        "uDP9XwmExpcR6TTDobtu8qVWYs99WmDou8PTTXM22IdoWZhtO4dh5q2SMZO90F0h",
+        "secretapikey!",
         "hoerl-demo.px.media"
     )
     
@@ -157,7 +157,7 @@ from pixxio_client.collections import Collection
 def test_collection_operations():
     """Test collection CRUD operations."""
     client = Client.create_client(
-        "uDP9XwmExpcR6TTDobtu8qVWYs99WmDou8PTTXM22IdoWZhtO4dh5q2SMZO90F0h",
+        "secretapikey!",
         "hoerl-demo.px.media"
     )
     
@@ -213,7 +213,7 @@ from pixxio_client.files import File
 def test_job_tracking():
     """Test job tracking with file upload."""
     client = Client.create_client(
-        "uDP9XwmExpcR6TTDobtu8qVWYs99WmDou8PTTXM22IdoWZhtO4dh5q2SMZO90F0h", 
+        "secretapikey!", 
         "hoerl-demo.px.media"
     )
     
@@ -277,7 +277,7 @@ def test_error_handling():
     
     # Test with valid client
     client = Client.create_client(
-        "uDP9XwmExpcR6TTDobtu8qVWYs99WmDou8PTTXM22IdoWZhtO4dh5q2SMZO90F0h",
+        "secretapikey!",
         "hoerl-demo.px.media"
     )
     files = File(client)
@@ -330,7 +330,7 @@ from pixxio_client.exceptions import *
 
 # Test configuration
 TEST_HOST = "hoerl-demo.px.media"
-TEST_API_KEY = "uDP9XwmExpcR6TTDobtu8qVWYs99WmDou8PTTXM22IdoWZhtO4dh5q2SMZO90F0h"
+TEST_API_KEY = "secretapikey!"
 
 class TestResult:
     def __init__(self, name: str, passed: bool, message: str = ""):
@@ -519,7 +519,7 @@ python integration_tests.py
 from pixxio_client import Client
 
 client = Client.create_client(
-    "uDP9XwmExpcR6TTDobtu8qVWYs99WmDou8PTTXM22IdoWZhtO4dh5q2SMZO90F0h",
+    "secretapikey!",
     "hoerl-demo.px.media"
 )
 
