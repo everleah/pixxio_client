@@ -88,6 +88,9 @@ class Authentication:
                 "Accept": "application/json"
             }
         )
+        
+
+class Client:
     """
     Main client for interacting with the PIXXIO API.
     
@@ -158,42 +161,37 @@ class Authentication:
         self.location_base = f'{host}/api/{version}'
         self._session: Optional[Session] = None
     
-class Client:
-    """
-    Main client for interacting with the PIXXIO API.
-    Handles session, authentication, and base URL construction.
-    """
-    def __init__(self, authentication: Authentication, host: str, 
-                 port: Optional[int] = None, version: str = 'v1', 
-                 logger: Optional[logging.Logger] = None) -> None:
-        self.authentication = authentication
-        self._host = host
-        self._port = port
-        self._version = version
-        if logger is None:
-            self.logger = logging.getLogger("pixx!o client")
-        else:
-            self.logger = logger
-        host = host.lower()
-        if not host.startswith('http'):
-            host = f'https://{host}'
-        if host.endswith('/'):
-            host = host[:-1]
-        if port is not None:
-            host = f'{host}:{port}'
-        self.location_base = f'{host}/api/{version}'
-        self._session: Optional[Session] = None
-
     @staticmethod
     def create_client(api_key: APIKey, host: str) -> 'Client':
         """
         Factory method to create a client instance with API key authentication.
+        
+        This is the recommended way to create a client as it handles the
+        Authentication object creation automatically. It's particularly useful
+        when you only have an API key and don't need custom authentication
+        behavior.
+
+        Args:
+            api_key: Your PIXXIO API key (Bearer token)
+            host: PIXXIO host domain (e.g., "company.pixxio.com")
+
+        Returns:
+            Client: Fully configured client ready for API operations
+            
+        Example:
+            ```python
+            # Simple client creation
+            client = Client.create_client("your-api-key", "company.pixxio.com")
+            
+            # Use immediately with resources
+            from pixxio_client.files import File
+            files = File(client)
+            all_files = files.get()
+            ```
         """
         return Client(
-            authentication=Authentication(api_key),
-            host=host)
-
-
+            host=host, 
+            authentication=Authentication(api_key))
         
     @property
     def session(self) -> Session:
