@@ -49,7 +49,7 @@ class ReadOnlyResourceBase:
         user_123 = users.get(123)
         ```
     """
-    
+    _paged: bool = True
     NAME: str  # Must be defined by subclasses
     
     def __init__(self, client: 'Client', logger: Optional[logging.Logger] = None, 
@@ -142,7 +142,7 @@ class ReadOnlyResourceBase:
         # Add default pagination parameters if not provided (only for list requests)
         # Individual item requests (with ID in URL) don't need pagination
         is_list_request = endpoint_base == self.endpoint_base
-        if is_list_request:
+        if is_list_request and self._paged:
             if 'page' not in params:
                 params['page'] = 1
             if 'pageSize' not in params:
