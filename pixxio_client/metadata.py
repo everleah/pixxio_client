@@ -1,7 +1,7 @@
 from ._base import ReadOnlyResourceBase
 
 class CustomMetadata(ReadOnlyResourceBase):
-    _paged: bool = False
+    _paged: bool = True
     NAME = "metadata/custom"
     
 class ImportantMetadata(ReadOnlyResourceBase):
