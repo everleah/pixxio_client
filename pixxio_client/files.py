@@ -1,8 +1,496 @@
+class FileUpdateBuilder:
+    """
+    Builder for PIXXIO file update (filesPut) form fields.
+    Supports fluent, chainable methods for all documented fields.
+    Automatically JSON-encodes metadata fields as needed.
+    Enforces mutual exclusion for ids/filter (last one wins).
+    Usage:
+        builder = FileUpdateBuilder()
+        form_data = (
+            builder
+                .ids([123, 456])
+                .description("Updated desc")
+                .metadata_standard([...])
+                .build()
+        )
+        files.update(**form_data)
+    """
+    def __init__(self):
+        self._fields = {}
+
+    def ids(self, value):
+        self._fields["ids"] = value
+        if "filter" in self._fields:
+            del self._fields["filter"]
+        return self
+
+    def filter(self, value):
+        self._fields["filter"] = value
+        if "ids" in self._fields:
+            del self._fields["ids"]
+        return self
+
+    def append_description(self, value: str):
+        self._fields["appendDescription"] = value
+        return self
+
+    def create_date(self, value: str):
+        self._fields["createDate"] = value
+        return self
+
+    def creator(self, value: str):
+        self._fields["creator"] = value
+        return self
+
+    def description(self, value: str):
+        self._fields["description"] = value
+        return self
+
+    def directory_id(self, value: int):
+        self._fields["directoryID"] = value
+        return self
+
+    def download_locked(self, value: bool):
+        self._fields["downloadLocked"] = value
+        return self
+
+    def file_name(self, value: str):
+        self._fields["fileName"] = value
+        return self
+
+    def file_name_with_extension(self, value: str):
+        self._fields["fileNameWithExtension"] = value
+        return self
+
+    def file_state_change_comment(self, value: str):
+        self._fields["fileStateChangeComment"] = value
+        return self
+
+    def file_state_id(self, value: int):
+        self._fields["fileStateID"] = value
+        return self
+
+    def keywords_recognition_to_add(self, value):
+        self._fields["keywordsRecognitionToAdd"] = value
+        return self
+
+    def keywords_recognition_to_remove(self, value):
+        self._fields["keywordsRecognitionToRemove"] = value
+        return self
+
+    def keywords_to_add(self, value):
+        self._fields["keywordsToAdd"] = value
+        return self
+
+    def keywords_to_remove(self, value):
+        self._fields["keywordsToRemove"] = value
+        return self
+
+    def language_codes_to_add(self, value):
+        self._fields["languageCodesToAdd"] = value
+        return self
+
+    def language_codes_to_remove(self, value):
+        self._fields["languageCodesToRemove"] = value
+        return self
+
+    def license_releases_to_add(self, value):
+        self._fields["licenseReleasesToAdd"] = value
+        return self
+
+    def license_releases_to_remove(self, value):
+        self._fields["licenseReleasesToRemove"] = value
+        return self
+
+    def location(self, value):
+        self._fields["location"] = value
+        return self
+
+    def metadata_append_text(self, value):
+        self._fields["metadataAppendText"] = value
+        return self
+
+    def metadata_custom(self, value):
+        self._fields["metadataCustom"] = value
+        return self
+
+    def metadata_date(self, value):
+        self._fields["metadataDate"] = value
+        return self
+
+    def metadata_focal_point(self, value):
+        self._fields["metadataFocalPoint"] = value
+        return self
+
+    def metadata_language_to_add(self, value):
+        self._fields["metadataLanguageToAdd"] = value
+        return self
+
+    def metadata_language_to_remove(self, value):
+        self._fields["metadataLanguageToRemove"] = value
+        return self
+
+    def metadata_location(self, value):
+        self._fields["metadataLocation"] = value
+        return self
+
+    def metadata_multi_selection_to_add(self, value):
+        self._fields["metadataMultiSelectionToAdd"] = value
+        return self
+
+    def metadata_multi_selection_to_remove(self, value):
+        self._fields["metadataMultiSelectionToRemove"] = value
+        return self
+
+    def metadata_selection(self, value):
+        self._fields["metadataSelection"] = value
+        return self
+
+    def metadata_standard(self, value):
+        self._fields["metadataStandard"] = value
+        return self
+
+    def metadata_text(self, value):
+        self._fields["metadataText"] = value
+        return self
+
+    def model_releases_to_add(self, value):
+        self._fields["modelReleasesToAdd"] = value
+        return self
+
+    def model_releases_to_remove(self, value):
+        self._fields["modelReleasesToRemove"] = value
+        return self
+
+    def property_releases_to_add(self, value):
+        self._fields["propertyReleasesToAdd"] = value
+        return self
+
+    def property_releases_to_remove(self, value):
+        self._fields["propertyReleasesToRemove"] = value
+        return self
+
+    def rating(self, value: int):
+        self._fields["rating"] = value
+        return self
+
+    def rotate_90_degrees_clockwise(self, value: bool):
+        self._fields["rotate90DegreesClockwise"] = value
+        return self
+
+    def rotate_90_degrees_counter_clockwise(self, value: bool):
+        self._fields["rotate90DegreesCounterClockwise"] = value
+        return self
+
+    def show_sub_versions(self, value: bool):
+        self._fields["showSubVersions"] = value
+        return self
+
+    def subject(self, value: str):
+        self._fields["subject"] = value
+        return self
+
+    def truncate_create_date(self, value: bool):
+        self._fields["truncateCreateDate"] = value
+        return self
+
+    def truncate_creator(self, value: bool):
+        self._fields["truncateCreator"] = value
+        return self
+
+    def truncate_description(self, value: bool):
+        self._fields["truncateDescription"] = value
+        return self
+
+    def truncate_file_state(self, value: bool):
+        self._fields["truncateFileState"] = value
+        return self
+
+    def truncate_location(self, value: bool):
+        self._fields["truncateLocation"] = value
+        return self
+
+    def truncate_metadata_fields(self, value):
+        self._fields["truncateMetadataFields"] = value
+        return self
+
+    def truncate_rating(self, value: bool):
+        self._fields["truncateRating"] = value
+        return self
+
+    def truncate_subject(self, value: bool):
+        self._fields["truncateSubject"] = value
+        return self
+
+    def upload_date(self, value: str):
+        self._fields["uploadDate"] = value
+        return self
+
+    def user_id(self, value: int):
+        self._fields["userID"] = value
+        return self
+
+    def set(self, key, value):
+        self._fields[key] = value
+        return self
+
+    def build(self):
+        import json
+        result = dict(self._fields)
+        for key in ("metadataStandard", "metadataCustom"):
+            if key in result and not isinstance(result[key], str):
+                result[key] = json.dumps(result[key])
+        return result
 from typing import Optional, Any
 
 from ._base import ResourceBase, ResourceUploadMixin, ResourceJobMixin
 from .pixxio_types import PIXXIOId, ResponseData
 
+
+class FileUploadBuilder:
+    """
+    Builder for PIXXIO file upload/update form fields.
+    Supports fluent, chainable methods for all documented fields.
+    Automatically JSON-encodes metadata fields as needed.
+    Usage:
+        builder = FileUploadBuilder()
+        form_data = (
+            builder
+                .file_name("myfile.jpg")
+                .description("Desc")
+                .keywords(["tag1", "tag2"])
+                .metadata_standard([...])
+                .metadata_custom([...])
+                .build()
+        )
+        files.upload_and_wait(path, **form_data)
+    """
+    def __init__(self):
+        self._fields = {}
+
+    def add_file_name_to_keywords(self, value: bool):
+        """addFileNameToKeywords: bool"""
+        self._fields["addFileNameToKeywords"] = value
+        return self
+
+    def add_keywords(self, value):
+        """addKeywords: list[str]"""
+        self._fields["addKeywords"] = value
+        return self
+
+    def add_seconds_to_newstamp(self, value: int):
+        self._fields["addSecondsToNewstamp"] = value
+        return self
+
+    def append_description(self, value: str):
+        self._fields["appendDescription"] = value
+        return self
+
+    def asynchronous_conversion(self, value: bool):
+        self._fields["asynchronousConversion"] = value
+        return self
+
+    def clip_server_name(self, value: str):
+        self._fields["clipServerName"] = value
+        return self
+
+    def collection_ids(self, value):
+        self._fields["collectionIDs"] = value
+        return self
+
+    def colorspace(self, value: str):
+        self._fields["colorspace"] = value
+        return self
+
+    def create_date(self, value: str):
+        self._fields["createDate"] = value
+        return self
+
+    def creator(self, value: str):
+        self._fields["creator"] = value
+        return self
+
+    def description(self, value: str):
+        self._fields["description"] = value
+        return self
+
+    def directory_id(self, value: int):
+        self._fields["directoryID"] = value
+        return self
+
+    def download_locked(self, value: bool):
+        self._fields["downloadLocked"] = value
+        return self
+
+    def file_name(self, value: str):
+        self._fields["fileName"] = value
+        return self
+
+    def file_state_id(self, value: int):
+        self._fields["fileStateID"] = value
+        return self
+
+    def is_convertible(self, value: bool):
+        self._fields["isConvertible"] = value
+        return self
+
+    def keywords(self, value):
+        self._fields["keywords"] = value
+        return self
+
+    def keywords_based_on_settings(self, value):
+        self._fields["keywordsBasedOnSettings"] = value
+        return self
+
+    def keywords_recognition(self, value):
+        self._fields["keywordsRecognition"] = value
+        return self
+
+    def language_codes(self, value):
+        self._fields["languageCodes"] = value
+        return self
+
+    def license_releases(self, value):
+        self._fields["licenseReleases"] = value
+        return self
+
+    def location(self, value):
+        self._fields["location"] = value
+        return self
+
+    def metadata_append_text(self, value):
+        self._fields["metadataAppendText"] = value
+        return self
+
+    def metadata_custom(self, value):
+        self._fields["metadataCustom"] = value
+        return self
+
+    def metadata_date(self, value):
+        self._fields["metadataDate"] = value
+        return self
+
+    def metadata_focal_point(self, value):
+        self._fields["metadataFocalPoint"] = value
+        return self
+
+    def metadata_language(self, value):
+        self._fields["metadataLanguage"] = value
+        return self
+
+    def metadata_location(self, value):
+        self._fields["metadataLocation"] = value
+        return self
+
+    def metadata_multi_selection(self, value):
+        self._fields["metadataMultiSelection"] = value
+        return self
+
+    def metadata_selection(self, value):
+        self._fields["metadataSelection"] = value
+        return self
+
+    def metadata_standard(self, value):
+        self._fields["metadataStandard"] = value
+        return self
+
+    def metadata_text(self, value):
+        self._fields["metadataText"] = value
+        return self
+
+    def metadata_to_copy(self, value):
+        self._fields["metadataToCopy"] = value
+        return self
+
+    def migration_id(self, value: int):
+        self._fields["migrationID"] = value
+        return self
+
+    def migration_md5_hash(self, value: str):
+        self._fields["migrationMD5Hash"] = value
+        return self
+
+    def model_releases(self, value):
+        self._fields["modelReleases"] = value
+        return self
+
+    def original_file_server_name(self, value: str):
+        self._fields["originalFileServerName"] = value
+        return self
+
+    def original_height(self, value: int):
+        self._fields["originalHeight"] = value
+        return self
+
+    def original_width(self, value: int):
+        self._fields["originalWidth"] = value
+        return self
+
+    def property_releases(self, value):
+        self._fields["propertyReleases"] = value
+        return self
+
+    def rating(self, value: int):
+        self._fields["rating"] = value
+        return self
+
+    def replace_id(self, value: int):
+        # mutually exclusive with version_id
+        self._fields["replaceID"] = value
+        if "versionID" in self._fields:
+            del self._fields["versionID"]
+        return self
+
+    def rotation(self, value: int):
+        self._fields["rotation"] = value
+        return self
+
+    def scan_clarifai(self, value: bool):
+        self._fields["scanClarifai"] = value
+        return self
+
+    def subject(self, value: str):
+        self._fields["subject"] = value
+        return self
+
+    def upload_date(self, value: str):
+        self._fields["uploadDate"] = value
+        return self
+
+    def upload_link_guest_user_email(self, value: str):
+        self._fields["uploadLinkGuestUserEmail"] = value
+        return self
+
+    def upload_link_guest_user_name(self, value: str):
+        self._fields["uploadLinkGuestUserName"] = value
+        return self
+
+    def variant_file_id(self, value: int):
+        self._fields["variantFileID"] = value
+        return self
+
+    def variant_stack_link_name(self, value: str):
+        self._fields["variantStackLinkName"] = value
+        return self
+
+    def version_id(self, value: int):
+        # mutually exclusive with replace_id
+        self._fields["versionID"] = value
+        if "replaceID" in self._fields:
+            del self._fields["replaceID"]
+        return self
+
+    def set(self, key, value):
+        self._fields[key] = value
+        return self
+
+    def build(self):
+        import json
+        result = dict(self._fields)
+        for key in ("metadataStandard", "metadataCustom"):
+            if key in result and not isinstance(result[key], str):
+                result[key] = json.dumps(result[key])
+        return result
 
 class File(ResourceBase, ResourceUploadMixin, ResourceJobMixin):
     """
