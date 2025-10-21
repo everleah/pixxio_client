@@ -5,29 +5,6 @@ from .pixxio_types import PIXXIOId, ResponseData
 
 
 class File(ResourceBase, ResourceUploadMixin, ResourceJobMixin):
-    def upload_url(self, file_url: str, filename: Optional[str] = None, **json_data: Any) -> ResponseData:
-        """
-        Upload a file to PIXXIO using a remote file URL instead of a local file path.
-        Optionally specify a filename for the uploaded asset.
-        Additional metadata can be passed via json_data.
-        """
-        data = {"fileUrl": file_url}
-        if filename:
-            data["originalFilename"] = filename
-        data.update(json_data)
-        return self.post(json_data=data)
-
-    def upload_url_and_wait(self, file_url: str, filename: Optional[str] = None, timeout: int = 300, poll_interval: float = 2.0, **form_data: Any) -> ResponseData:
-        """
-        Upload a file using a remote file URL and wait for processing to complete.
-        Optionally specify a filename for the uploaded asset.
-        Additional metadata can be passed via form_data.
-        """
-        data = {"fileUrl": file_url}
-        if filename:
-            data["originalFilename"] = filename
-        data.update(form_data)
-        return self.post_and_wait(timeout=timeout, poll_interval=poll_interval, json_data=data)
     """
     File resource for managing digital assets in PIXXIO.
     
@@ -66,6 +43,30 @@ class File(ResourceBase, ResourceUploadMixin, ResourceJobMixin):
     
     NAME = "files"
     
+    def upload_url(self, file_url: str, filename: Optional[str] = None, **json_data: Any) -> ResponseData:
+        """
+        Upload a file to PIXXIO using a remote file URL instead of a local file path.
+        Optionally specify a filename for the uploaded asset.
+        Additional metadata can be passed via json_data.
+        """
+        data = {"fileUrl": file_url}
+        if filename:
+            data["originalFilename"] = filename
+        data.update(json_data)
+        return self.post(json_data=data)
+
+    def upload_url_and_wait(self, file_url: str, filename: Optional[str] = None, timeout: int = 300, poll_interval: float = 2.0, **form_data: Any) -> ResponseData:
+        """
+        Upload a file using a remote file URL and wait for processing to complete.
+        Optionally specify a filename for the uploaded asset.
+        Additional metadata can be passed via form_data.
+        """
+        data = {"fileUrl": file_url}
+        if filename:
+            data["originalFilename"] = filename
+        data.update(form_data)
+        return self.post_and_wait(timeout=timeout, poll_interval=poll_interval, json_data=data)
+
     def download(self, id: Optional[PIXXIOId] = None, **params: Any) -> ResponseData:
         """
         Download file(s) with optional format conversion.
