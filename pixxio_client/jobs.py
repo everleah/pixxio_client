@@ -56,45 +56,36 @@ class Job(ReadOnlyResourceBase):
         )
     
     def wait_for_completion(
-        self, 
-        job_id: PIXXIOId, 
-        timeout: int = 300, 
+        self,
+        job_id: PIXXIOId,
+        timeout: int = 300,
         poll_interval: float = 2.0,
-        callback: Optional[JobCallback] = None
-    ) -> JobInfo:
-        """Wait for job completion with optional callback for progress updates.
-        
-        Args:
-            job_id: The job ID to monitor
-            timeout: Maximum time to wait in seconds (default: 300)
-            poll_interval: Time between status checks in seconds (default: 2.0)
-            callback: Optional callback function called on each status update
-            
-        Returns:
-            Final JobInfo when job completes
-            
-        Raises:
-            JobTimeoutException: If job doesn't complete within timeout
-            JobFailedException: If job fails during processing
-            JobAbortedException: If job was cancelled/aborted
+        callback: Optional[JobCallback] = None,
+        response_fields: Optional[list[str]] = None
+    ) -> ResponseData:
+        """
+        Wait for job completion using isFinished field in job object.
+        When finished, fetch job data again with requested response fields.
         """
         start_time = time.time()
-        
+        job_obj = None
+        if response_fields is None:
+            response_fields = ["id", "jobType", "jobData", "isFinished", "success", "error"]
         while time.time() - start_time < timeout:
-            job_info = self.get_status(job_id)
-            
+            job_response = self.get(job_id)
+            job_obj = getattr(job_response, "job", job_response)
+            is_finished = getattr(job_obj, "isFinished", False)
             if callback:
-                callback(job_info)
-                
-            if job_info.status == JobStatus.COMPLETED:
-                return job_info
-            elif job_info.status == JobStatus.FAILED:
-                raise JobFailedException(job_id, job_info.message)
-            elif job_info.status == JobStatus.ABORTED:
-                raise JobAbortedException(job_id)
-                
+                callback(job_obj)
+            if is_finished:
+                # Fetch job data again with responseFields if provided, else use defaults
+                params = {}
+                for field in response_fields:
+                    params.setdefault("responseFields", []).append(field)
+                job_response = self.get(job_id, **params)
+                full_job_obj = getattr(job_response, "job", job_obj)
+                return full_job_obj
             time.sleep(poll_interval)
-            
         raise JobTimeoutException(job_id, timeout)
     
     async def async_wait_for_completion(
@@ -103,38 +94,17 @@ class Job(ReadOnlyResourceBase):
         timeout: int = 300,
         poll_interval: float = 2.0,
         callback: Optional[AsyncJobCallback] = None
-    ) -> JobInfo:
-        """Async version of wait_for_completion.
-        
-        Args:
-            job_id: The job ID to monitor  
-            timeout: Maximum time to wait in seconds (default: 300)
-            poll_interval: Time between status checks in seconds (default: 2.0)
-            callback: Optional async callback function called on each status update
-            
-        Returns:
-            Final JobInfo when job completes
-            
-        Raises:
-            JobTimeoutException: If job doesn't complete within timeout
-            JobFailedException: If job fails during processing
-            JobAbortedException: If job was cancelled/aborted
-        """
+    ) -> ResponseData:
+        """Async version: wait for job completion using isFinished field."""
         start_time = time.time()
-        
+        job_obj = None
         while time.time() - start_time < timeout:
-            job_info = self.get_status(job_id)
-            
+            job_response = self.get(job_id)
+            job_obj = getattr(job_response, "job", job_response)
+            is_finished = getattr(job_obj, "isFinished", False)
             if callback:
-                await callback(job_info)
-                
-            if job_info.status == JobStatus.COMPLETED:
-                return job_info
-            elif job_info.status == JobStatus.FAILED:
-                raise JobFailedException(job_id, job_info.message)
-            elif job_info.status == JobStatus.ABORTED:
-                raise JobAbortedException(job_id)
-                
+                await callback(job_obj)
+            if is_finished:
+                return job_obj
             await asyncio.sleep(poll_interval)
-            
         raise JobTimeoutException(job_id, timeout)

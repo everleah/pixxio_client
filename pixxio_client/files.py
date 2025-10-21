@@ -5,6 +5,29 @@ from .pixxio_types import PIXXIOId, ResponseData
 
 
 class File(ResourceBase, ResourceUploadMixin, ResourceJobMixin):
+    def upload_url(self, file_url: str, filename: Optional[str] = None, **json_data: Any) -> ResponseData:
+        """
+        Upload a file to PIXXIO using a remote file URL instead of a local file path.
+        Optionally specify a filename for the uploaded asset.
+        Additional metadata can be passed via json_data.
+        """
+        data = {"fileUrl": file_url}
+        if filename:
+            data["originalFilename"] = filename
+        data.update(json_data)
+        return self.post(json_data=data)
+
+    def upload_url_and_wait(self, file_url: str, filename: Optional[str] = None, timeout: int = 300, poll_interval: float = 2.0, **form_data: Any) -> ResponseData:
+        """
+        Upload a file using a remote file URL and wait for processing to complete.
+        Optionally specify a filename for the uploaded asset.
+        Additional metadata can be passed via form_data.
+        """
+        data = {"fileUrl": file_url}
+        if filename:
+            data["originalFilename"] = filename
+        data.update(form_data)
+        return self.post_and_wait(timeout=timeout, poll_interval=poll_interval, json_data=data)
     """
     File resource for managing digital assets in PIXXIO.
     
@@ -85,66 +108,45 @@ class File(ResourceBase, ResourceUploadMixin, ResourceJobMixin):
             **params)
     
     def upload_and_wait(
-        self, 
-        file_path: str, 
+        self,
+        file_path: str,
         timeout: int = 300,
         poll_interval: float = 2.0,
         **form_data: Any
     ) -> ResponseData:
         """
-        Upload a file and wait for processing to complete.
-        
-        This method combines file upload with job tracking to ensure the upload
-        and any associated processing (thumbnails, metadata extraction, etc.)
-        completes before returning. This is particularly useful for files that
-        require processing time.
-        
-        Args:
-            file_path: Path to the local file to upload
-            timeout: Maximum time to wait for processing (seconds, default: 300)
-            poll_interval: Time between status checks (seconds, default: 2.0)
-            **form_data: Additional metadata for the upload including:
-                - title: File title/name
-                - subject: File subject/description
-                - keywords: Comma-separated keywords
-                - category: File category
-                - originalFilename: Override detected filename
-                
-        Returns:
-            ResponseData: Final result when upload and processing completes
-            
-        Raises:
-            FileNotFoundError: If the specified file doesn't exist
-            JobTimeoutException: If processing doesn't complete within timeout
-            JobFailedException: If file processing fails
-            PIXXIOException: If the upload request fails
-            
-        Example:
-            ```python
-            files = File(client)
-            
-            # Simple upload with job tracking
-            result = files.upload_and_wait("/path/to/image.jpg")
-            
-            # Upload with metadata and extended timeout
-            result = files.upload_and_wait(
-                "/path/to/large_video.mp4",
-                timeout=1800,  # 30 minutes
-                poll_interval=10.0,
-                title="Product Demo Video",
-                keywords="product,demo,marketing",
-                category="videos"
-            )
-            ```
+        Upload a file and wait for processing to complete, extracting asset ID from job result.
+        Handles duplicate scenario by returning existingFileID if present.
         """
         with open(file_path, "rb") as f:
             files = {"file": f}
-            return self.post_and_wait(
+            job_result = self.post_and_wait(
                 timeout=timeout,
                 poll_interval=poll_interval,
                 form_data=form_data,
                 files=files
             )
+            # Try to extract asset ID from job_result
+            asset_id = None
+            # job_result may be a dict or SimpleNamespace
+            if isinstance(job_result, dict):
+                asset_id = job_result.get("id") or job_result.get("fileId")
+                # Check for duplicateInfo
+                duplicate_info = job_result.get("duplicateInfo")
+                if duplicate_info:
+                    asset_id = duplicate_info.get("existingFileID", asset_id)
+            else:
+                asset_id = getattr(job_result, "id", None) or getattr(job_result, "fileId", None)
+                duplicate_info = getattr(job_result, "duplicateInfo", None)
+                if duplicate_info:
+                    asset_id = getattr(duplicate_info, "existingFileID", asset_id)
+            # Attach asset_id to result for convenience
+            if asset_id:
+                if isinstance(job_result, dict):
+                    job_result["asset_id"] = asset_id
+                else:
+                    setattr(job_result, "asset_id", asset_id)
+            return job_result
     
     async def async_upload_and_wait(
         self,

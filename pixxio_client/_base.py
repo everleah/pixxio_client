@@ -625,13 +625,13 @@ class ResourceJobMixin:
         job_id = self._extract_job_id(response)
         if job_id:
             job_resource = self._get_job_resource()
-            final_job = job_resource.wait_for_completion(
-                job_id=job_id, 
-                timeout=timeout, 
+            job_obj = job_resource.wait_for_completion(
+                job_id=job_id,
+                timeout=timeout,
                 poll_interval=poll_interval
             )
-            return final_job.result_data or response
-        
+            finished_data = getattr(job_obj, "finishedJobData", None)
+            return finished_data or response
         return response
     
     async def async_post_and_wait(
@@ -683,13 +683,13 @@ class ResourceJobMixin:
         job_id = self._extract_job_id(response)
         if job_id:
             job_resource = self._get_job_resource()
-            final_job = await job_resource.async_wait_for_completion(
+            job_obj = await job_resource.async_wait_for_completion(
                 job_id=job_id,
                 timeout=timeout,
                 poll_interval=poll_interval
             )
-            return final_job.result_data or response
-            
+            finished_data = getattr(job_obj, "finishedJobData", None)
+            return finished_data or response
         return response
 
 
