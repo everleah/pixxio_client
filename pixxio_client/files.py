@@ -118,7 +118,13 @@ class File(ResourceBase, ResourceUploadMixin, ResourceJobMixin):
         """
         Upload a file and wait for processing to complete, extracting asset ID from job result.
         Handles duplicate scenario by returning existingFileID if present.
+        Automatically JSON-encodes metadataStandard and metadataCustom if needed.
         """
+        import json
+        # JSON-encode metadata fields if needed
+        for key in ("metadataStandard", "metadataCustom"):
+            if key in form_data and not isinstance(form_data[key], str):
+                form_data[key] = json.dumps(form_data[key])
         with open(file_path, "rb") as f:
             files = {"file": f}
             job_result = self.post_and_wait(
@@ -213,6 +219,33 @@ class File(ResourceBase, ResourceUploadMixin, ResourceJobMixin):
                 files=files
             )
 
+    def update(
+        self,
+        ids=None,
+        filter=None,
+        **fields
+    ) -> ResponseData:
+        """
+        Update existing files (metadata, attributes, etc) using the filesPut endpoint.
+        Accepts all documented fields as kwargs. At least one of ids or filter is required.
+        Automatically JSON-encodes metadataStandard and metadataCustom if needed.
+        Returns jobID and success.
+        """
+        import json
+        # Enforce mutual exclusion and required fields
+        if (ids is None and filter is None) or (ids is not None and filter is not None):
+            raise ValueError("Exactly one of 'ids' or 'filter' must be provided.")
+        form_data = dict(fields)
+        if ids is not None:
+            form_data["ids"] = ids
+        if filter is not None:
+            form_data["filter"] = filter
+        # JSON-encode metadata fields if needed
+        for key in ("metadataStandard", "metadataCustom"):
+            if key in form_data and not isinstance(form_data[key], str):
+                form_data[key] = json.dumps(form_data[key])
+        # Use PUT with multipart/form-data at the collection endpoint
+        return self._put(endpoint_base=self.endpoint_base, form_data=form_data)
         
     
     
