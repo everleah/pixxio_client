@@ -1,18 +1,18 @@
-from ._base import ReadOnlyResourceBase
+from ._base import ResourceBase, ReadOnlyResourceBase
 
-class CustomMetadata(ReadOnlyResourceBase):
+class CustomMetadata(ResourceBase):
     _paged: bool = True
     NAME = "metadata/custom"
-    
+
 class ImportantMetadata(ReadOnlyResourceBase):
     _paged: bool = False
     NAME = "metadata/important"
-    
+
 class InternalMetadata(ReadOnlyResourceBase):
     _paged: bool = False
     NAME = "metadata/internal"
-    
-class StandardMetadata(ReadOnlyResourceBase):
+
+class StandardMetadata(ResourceBase):
     _paged: bool = False
     NAME = "metadata/standard"
        
