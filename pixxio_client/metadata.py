@@ -192,7 +192,9 @@ class MetadataValueBuilder:
         return self
 
     def build(self) -> List[dict]:
-        return self.metadata
+        result = self.metadata
+        self.metadata = []  # reset after build
+        return result
 
 class CustomMetadataBuilder(MetadataValueBuilder):
     """Builder for custom metadata values."""
