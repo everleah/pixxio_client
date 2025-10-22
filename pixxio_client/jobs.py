@@ -76,7 +76,7 @@ class Job(ReadOnlyResourceBase):
             job_obj = getattr(job_response, "job", job_response)
             is_finished = getattr(job_obj, "isFinished", False)
             if callback:
-                callback(job_obj)
+                callback(job_obj) # type: ignore
             if is_finished:
                 # Fetch job data again with responseFields if provided, else use defaults
                 params = {}
@@ -103,7 +103,7 @@ class Job(ReadOnlyResourceBase):
             job_obj = getattr(job_response, "job", job_response)
             is_finished = getattr(job_obj, "isFinished", False)
             if callback:
-                await callback(job_obj)
+                await callback(job_obj) # type: ignore
             if is_finished:
                 return job_obj
             await asyncio.sleep(poll_interval)

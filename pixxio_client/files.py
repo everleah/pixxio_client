@@ -1,3 +1,12 @@
+import tempfile
+import requests
+import os
+
+from typing import Optional, Any
+
+from ._base import ResourceBase, ResourceUploadMixin, ResourceJobMixin
+from .pixxio_types import PIXXIOId, ResponseData
+
 class FileUpdateBuilder:
     """
     Builder for PIXXIO file update (filesPut) form fields.
@@ -241,11 +250,6 @@ class FileUpdateBuilder:
             if key in result and not isinstance(result[key], str):
                 result[key] = json.dumps(result[key])
         return result
-from typing import Optional, Any
-
-from ._base import ResourceBase, ResourceUploadMixin, ResourceJobMixin
-from .pixxio_types import PIXXIOId, ResponseData
-
 
 class FileUploadBuilder:
     """
@@ -530,30 +534,34 @@ class File(ResourceBase, ResourceUploadMixin, ResourceJobMixin):
     """
     
     NAME = "files"
-    
-    def upload_url(self, file_url: str, filename: Optional[str] = None, **json_data: Any) -> ResponseData:
-        """
-        Upload a file to PIXXIO using a remote file URL instead of a local file path.
-        Optionally specify a filename for the uploaded asset.
-        Additional metadata can be passed via json_data.
-        """
-        data = {"fileUrl": file_url}
-        if filename:
-            data["originalFilename"] = filename
-        data.update(json_data)
-        return self.post(json_data=data)
 
-    def upload_url_and_wait(self, file_url: str, filename: Optional[str] = None, timeout: int = 300, poll_interval: float = 2.0, **form_data: Any) -> ResponseData:
+    def upload_url_and_wait(self, file_url: str,  timeout: int = 300, poll_interval: float = 2.0, **form_data: Any) -> ResponseData:
         """
         Upload a file using a remote file URL and wait for processing to complete.
         Optionally specify a filename for the uploaded asset.
         Additional metadata can be passed via form_data.
         """
-        data = {"fileUrl": file_url}
-        if filename:
-            data["originalFilename"] = filename
-        data.update(form_data)
-        return self.post_and_wait(timeout=timeout, poll_interval=poll_interval, json_data=data)
+        try:
+            # Download remote file to temp location
+            with tempfile.NamedTemporaryFile(suffix=".png", delete=False) as tmp_file:
+                response = requests.get(file_url)
+                response.raise_for_status()
+                tmp_file.write(response.content)
+                tmp_file_path = tmp_file.name
+        except Exception as e:
+            raise RuntimeError(f"Failed to download file from URL: {e}")
+        try:
+            # Upload the downloaded file
+            result = self.upload_and_wait(
+                tmp_file_path,
+                timeout=timeout,
+                poll_interval=poll_interval,
+                **form_data
+            )
+        finally:
+            # Clean up temp file
+            os.unlink(tmp_file_path)
+        return result
 
     def download(self, id: Optional[PIXXIOId] = None, **params: Any) -> ResponseData:
         """
