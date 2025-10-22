@@ -1,5 +1,5 @@
 from datetime import datetime, date
-from typing import List, Optional, Literal
+from typing import List, Optional, Literal, Any
 from types import SimpleNamespace
 from ._base import ResourceBase, ReadOnlyResourceBase
 
@@ -175,6 +175,21 @@ class MetadataValueBuilder:
 
     def remove(self, identifier: str | int):
         return self.append("remove", identifier)
+
+    def add_list(self, values: dict[int|str, Any]):
+        for key, value in values.items():
+            self.add(key, value)
+        return self
+    
+    def replace_list(self, values: dict[int|str, Any]):
+        for key, value in values.items():
+            self.replace(key, value)
+        return self
+
+    def remove_list(self, values: dict[int|str, Any]):
+        for key, value in values.items():
+            self.remove(key)
+        return self
 
     def build(self) -> List[dict]:
         return self.metadata
