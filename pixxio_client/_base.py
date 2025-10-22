@@ -50,6 +50,8 @@ class ReadOnlyResourceBase:
         ```
     """
     _paged: bool = True
+    _response_field_filter = None  # type: Optional[List[str]]
+    
     NAME: str  # Must be defined by subclasses
     
     def __init__(self, client: 'Client', logger: Optional[logging.Logger] = None, 
@@ -88,8 +90,12 @@ class ReadOnlyResourceBase:
             result = files.get()  # Only returns specified fields
             ```
         """
-        self.response_fields = response_fields
-    
+        if self._response_field_filter is None:
+            self.response_fields = response_fields
+        else:  # filter allowed response fields
+            self.response_fields = [field for field in response_fields
+                                     if field in self._response_field_filter]
+
     def set_response_field(self, response_field: str) -> int:
         """
         Add a single field to the response fields list.
@@ -112,11 +118,37 @@ class ReadOnlyResourceBase:
             count = files.set_response_field('subject')  # Returns 3
             ```
         """
+        if self._response_field_filter is not None:
+            if response_field not in self._response_field_filter:
+                return len(self.response_fields or [])
         if self.response_fields and response_field not in self.response_fields:
             self.response_fields.append(response_field)
         elif not self.response_fields:
             self.response_fields = [response_field]
         return len(self.response_fields)
+    
+    def get_allowed_response_fields(self) -> Optional[List[str]]:
+        """
+        Get the list of allowed response fields for this resource.
+        
+        This method returns the predefined list of allowed response fields
+        if such a filter is set. If no filter is defined, it returns None,
+        indicating that there is no restriction on allowed fields implemented.
+        
+        Returns:
+            Optional[List[str]]: List of allowed response fields or None
+            
+        Example:
+            ```python
+            files = File(client)
+            allowed_fields = files.get_allowed_response_fields()
+            if allowed_fields:
+                print("Allowed fields:", allowed_fields)
+            else:
+                print("All fields are allowed")
+            ```
+        """
+        return self._response_field_filter
 
     def _transform_params(self, params_dict: dict) -> List[tuple[str, str]]:
         """
