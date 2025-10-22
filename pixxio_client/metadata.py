@@ -96,7 +96,7 @@ class MetadataValueBuilder:
             value = str(value)
         return value
 
-    def append(self, action: Literal["add", "replace", "remove"], field_id: int, value=None):
+    def append_by_id(self, action: Literal["add", "replace", "remove"], field_id: int, value=None):
         entry = {"action": action, "id": field_id}
         if action in ["replace", "add"]:
             entry["value"] = self._transform_value(field_id, value)
@@ -110,10 +110,18 @@ class MetadataValueBuilder:
         field_id = getattr(field, "id", None)
         if field_id is None:
             raise ValueError(f"Metadata field id for name '{field_name}' not found.")
-        self.append(action, field_id, value)
+        self.append_by_id(action, field_id, value)
         return self
+    
+    def append(self, action: Literal["add", "replace", "remove"], identifier: str | int, value=None):
+        if isinstance(identifier, int):
+            return self.append_by_id(action, identifier, value)
+        elif isinstance(identifier, str):
+            return self.append_by_name(action, identifier, value)
+        else:
+            raise ValueError("Identifier must be either field name (str) or field id (int).")
 
-    def get_selection_options(self, id: int) -> Optional[List[dict]]:
+    def get_selection_options_by_id(self, id: int) -> Optional[List[dict]]:
             field = self.id_to_field.get(id, None)
             if not field:
                 return None
@@ -124,6 +132,26 @@ class MetadataValueBuilder:
         if not field:
             return None
         return getattr(field, "selectionOptions", None)
+    
+    def get_selection_options(self, identifier: str | int) -> Optional[List[dict]]:
+        if isinstance(identifier, int):
+            return self.get_selection_options_by_id(identifier)
+        elif isinstance(identifier, str):
+            return self.get_selection_options_by_name(identifier)
+        return None
+
+    def is_valid_field_by_id(self, field_id: int) -> bool:
+        return field_id in self.id_to_field
+    
+    def is_valid_field_name(self, field_name: str) -> bool:
+        return field_name in self.name_to_field
+    
+    def is_valid_field(self, identifier: str | int) -> bool:
+        if isinstance(identifier, int):
+            return self.is_valid_field_by_id(identifier)
+        elif isinstance(identifier, str):
+            return self.is_valid_field_name(identifier)
+        return False
     
     @classmethod
     def get_selection_options_name_index(cls, selection_options: List[dict]) -> dict:
@@ -138,16 +166,16 @@ class MetadataValueBuilder:
 
     def get_id(self, name: str) -> Optional[int]:
         return self.name_to_field.get(name, None) # type: ignore
-        
-    def add(self, name: str, value):
-        return self.append_by_name("add", name, value)
-    
-    def replace(self, name: str, value):
-        return self.append_by_name("replace", name, value)  
-    
-    def remove(self, name: str):
-        return self.append_by_name("remove", name)
-    
+
+    def add(self, identifier: str | int, value):
+        return self.append("add", identifier, value)
+
+    def replace(self, identifier: str | int, value):
+        return self.append("replace", identifier, value)
+
+    def remove(self, identifier: str | int):
+        return self.append("remove", identifier)
+
     def build(self) -> List[dict]:
         return self.metadata
 
