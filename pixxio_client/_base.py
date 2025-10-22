@@ -117,7 +117,34 @@ class ReadOnlyResourceBase:
         elif not self.response_fields:
             self.response_fields = [response_field]
         return len(self.response_fields)
-    
+
+    def _transform_params(self, params_dict: dict) -> List[tuple[str, str]]:
+        """
+        Transform query parameters into the required format.
+        
+        This method processes query parameters to ensure they are in the
+        correct format for API requests. It handles lists, booleans, and
+        other data types as needed.
+
+        Args:
+            params_dict: The original query parameters as a dictionary
+
+        Returns:
+            QueryParams: Transformed query parameters suitable for requests
+        """
+        transformed = []
+        for key, value in params_dict.items():
+            if isinstance(value, list):
+                for item in value:
+                    transformed.append((key, str(item)))
+            elif isinstance(value, bool):
+                transformed.append((key, str(value).lower()))
+            elif value is not None:
+                transformed.append((key, str(value)))
+
+        return transformed
+
+
     def _get(self, endpoint_base: str, **params: Any) -> ResponseData:
         """
         Internal GET method with automatic response field handling.
