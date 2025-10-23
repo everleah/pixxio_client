@@ -26,14 +26,17 @@ client = Client(api_key, host)
 standard_builder = StandardMetadataBuilder(client)
 standard_builder.add("Title", "Test Asset Title")
 standard_builder.add("DateCreated", "2025-10-21")
+standard_builder.add("DateCreated", datetime.now())
 # For selection/multiselection fields, use the option name or id
-standard_builder.add("Category", [12345])
+standard_builder.add("Category", 12345)
 standard_metadata_payload = standard_builder.build()
 
 # Build custom metadata
 custom_builder = CustomMetadataBuilder(client)
-custom_builder.add("Produktbereich", [98765])  # multiselection field
-custom_builder.add("Artikelnummer", "123-ABC")
+custom_builder.add("Produktbereich", 98765)  # multiselection field using id value
+custom_builder.add("Produktbereich", "Hosen")  # multiselection field using name value
+custom_builder.add("Artikelnummer", "123-ABC") # using field name
+custom_builder.add(772183380, "123-ABC") # using field id
 custom_metadata_payload = custom_builder.build()
 
 # Use in file upload or update
