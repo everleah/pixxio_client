@@ -534,6 +534,7 @@ class File(ResourceBase, ResourceUploadMixin, ResourceJobMixin):
     """
     
     NAME = "files"
+    _response_field_filter = ["uploadDate", "modifyDate", "createDate", "id", "fileName", "fileExtension", "fileType", "subject", "description", "width", "height", "pixel", "colorspace", "orientation", "fileSize", "md5sum", "keywords", "keywordsRecognition", "rating", "rotation", "fileState", "isDownloadLocked", "isArchived", "isRotatable", "isConvertible", "isCheckedOut", "isMainVersion", "hasSubversions", "originalFileURL", "previewFileURL", "clipFileURL", "modifiedPreviewFileURLs", "user", "creator", "location", "directory", "permissions", "metadataFields", "dominantColor", "variantStack", "languageCodes", "isMarked", "staticCollections", "versions", "importantMetadata", "licenseReleases", "modelReleases", "propertyReleases"]
 
     def upload_url_and_wait(self, file_url: str,  timeout: int = 300, poll_interval: float = 2.0, **form_data: Any) -> ResponseData:
         """
