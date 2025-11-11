@@ -4,6 +4,72 @@
 
 The webhook stub server captures and displays webhook events from PIXXIO. This guide covers how to use the web interface, API, and configure PIXXIO to send webhooks.
 
+**Security**: All webhooks are signed with HMAC-SHA256 for authenticity verification.
+
+## Security: Webhook Signature Verification
+
+### How It Works
+
+PIXXIO sends all webhooks with an `x-hub-signature-256` header containing an HMAC-SHA256 signature of the payload. This ensures:
+
+- ✅ Webhooks come from PIXXIO (not spoofed)
+- ✅ Payload hasn't been tampered with
+- ✅ Secure webhook delivery
+
+### Configuration
+
+The webhook secret is set in the environment:
+
+```bash
+PIXXIO_WEBHOOK_SECRET=PixxIOsecred2525
+```
+
+This must match the secret configured in your PIXXIO webhook settings.
+
+### Verification Process
+
+When a webhook is received:
+
+1. Extract `x-hub-signature-256` header
+2. Calculate: `HMAC-SHA256(payload, secret)`
+3. Compare with header signature
+4. **If valid** ✅: Process webhook
+5. **If invalid** ❌: Reject with 401 Unauthorized
+
+### Testing
+
+See `test_webhook_security.py` for testing the signature verification:
+
+```bash
+docker exec pixxio-webhook-stub python3 /app/test_webhook_security.py
+```
+
+Expected output:
+```
+Test 1: Valid Signature       ✅ PASS (Status 200)
+Test 2: Invalid Signature     ✅ PASS (Status 401)
+Test 3: Missing Signature     ✅ PASS (Status 401)
+```
+
+### Webhook Storage
+
+Each webhook is stored with metadata:
+
+```json
+{
+  "timestamp": "2025-11-11T14:51:00.123456",
+  "signature_verified": true,
+  "headers": {
+    "x-hub-signature-256": "433be62...",
+    "content-type": "application/json",
+    ...
+  },
+  "payload": { "events": [...] }
+}
+```
+
+For complete security documentation, see: `WEBHOOK_SECURITY.md`
+
 ## Web Dashboard
 
 ### Accessing the Dashboard

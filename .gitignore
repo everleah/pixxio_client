@@ -157,6 +157,7 @@ secrets.json
 # Local test files
 test_*.py
 *_test.py
+test_*.sh
 temp/
 tmp/
 

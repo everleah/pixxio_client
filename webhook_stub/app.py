@@ -5,6 +5,8 @@ Serves a web interface for downloading stored JSON data.
 import os
 import json
 import logging
+import hmac
+import hashlib
 from datetime import datetime
 from pathlib import Path
 from typing import Dict, Any, List
@@ -22,6 +24,9 @@ app = FastAPI(
 # Configuration
 STORAGE_DIR = Path(os.environ.get("WEBHOOK_STORAGE_DIR", "/data/webhooks"))
 STORAGE_DIR.mkdir(parents=True, exist_ok=True)
+
+# Webhook Secret for signature verification
+WEBHOOK_SECRET = os.environ.get("PIXXIO_WEBHOOK_SECRET", "PixxIOsecred2525")
 
 # Setup logging
 logging.basicConfig(
@@ -220,6 +225,7 @@ TEMPLATE = """
             Endpoint: <code>POST /webhook</code> | 
             Storage: <code>{{ storage_location }}</code> | 
             Events received: <strong>{{ event_count }}</strong>
+            | <a href="/headers" style="color: #2e7d32; text-decoration: none;">🔐 Headers</a>
         </div>
 
         {% if events %}
@@ -355,21 +361,34 @@ async def index(request: Request) -> str:
                 event_type = "unknown"
                 event_count_in_file = 0
                 
-                if isinstance(data, dict) and "events" in data:
+                # Check for new format with headers
+                if isinstance(data, dict) and "payload" in data:
+                    payload = data.get("payload", {})
+                    if isinstance(payload, dict) and "events" in payload:
+                        events_list = payload.get("events", [])
+                        event_count_in_file = len(events_list)
+                        if events_list and len(events_list) > 0:
+                            first_event = events_list[0]
+                            event_key = first_event.get("eventKey", "unknown")
+                            action = first_event.get("action", "")
+                            if action:
+                                event_type = f"{action.capitalize()} - {event_key}"
+                            else:
+                                event_type = event_key
+                # Check for old format without headers
+                elif isinstance(data, dict) and "events" in data:
                     events_list = data.get("events", [])
                     event_count_in_file = len(events_list)
                     if events_list and len(events_list) > 0:
                         first_event = events_list[0]
                         event_key = first_event.get("eventKey", "unknown")
                         action = first_event.get("action", "")
-                        
-                        # Format event type nicely
                         if action:
                             event_type = f"{action.capitalize()} - {event_key}"
                         else:
                             event_type = event_key
                 else:
-                    # Fallback for old format
+                    # Fallback for other formats
                     event_type = data.get("event", "unknown")
             except Exception as e:
                 logger.error(f"Error parsing event {file.name}: {e}")
@@ -401,30 +420,96 @@ async def index(request: Request) -> str:
         raise HTTPException(status_code=500, detail=f"Template error: {str(e)}")
 
 
+def verify_webhook_signature(body: bytes, signature_header: str, secret: str) -> bool:
+    """
+    Verify PIXXIO webhook signature using HMAC-SHA256.
+    
+    Args:
+        body: Raw webhook body (bytes)
+        signature_header: Value from x-hub-signature-256 header
+        secret: Webhook secret from PIXXIO config
+    
+    Returns:
+        True if signature is valid, False otherwise
+    """
+    try:
+        expected_signature = hmac.new(
+            secret.encode(),
+            body,
+            hashlib.sha256
+        ).hexdigest()
+        
+        # Use compare_digest for timing-safe comparison
+        return hmac.compare_digest(expected_signature, signature_header)
+    except Exception as e:
+        logger.error(f"Signature verification error: {e}")
+        return False
+
+
 @app.post("/webhook")
 async def webhook(request: Request) -> Dict[str, Any]:
     """Receive and store webhook events from PIXXIO."""
     try:
-        data = await request.json()
+        # Get raw body for signature verification
+        body = await request.body()
+        
+        # Get signature from header
+        signature_header = request.headers.get("x-hub-signature-256")
+        
+        if not signature_header:
+            logger.warning("Webhook received without x-hub-signature-256 header")
+            raise HTTPException(status_code=401, detail="Missing signature header")
+        
+        # Verify webhook signature
+        if not verify_webhook_signature(body, signature_header, WEBHOOK_SECRET):
+            logger.error(f"Invalid webhook signature: {signature_header}")
+            raise HTTPException(status_code=401, detail="Invalid signature")
+        
+        logger.info("✓ Webhook signature verified successfully")
+        
+        # Parse JSON payload
+        data = json.loads(body)
         if not data:
             logger.warning("Received empty webhook payload")
             raise HTTPException(status_code=400, detail="No JSON data")
+        
+        # Capture all headers for debugging
+        headers_dict = dict(request.headers)
         
         # Generate filename with timestamp
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S_%f")[:-3]
         filename = f"webhook_{timestamp}.json"
         filepath = STORAGE_DIR / filename
         
-        # Store the JSON data
-        with open(filepath, "w") as f:
-            json.dump(data, f, indent=2)
+        # Store the JSON data along with headers info
+        webhook_with_metadata = {
+            "timestamp": datetime.now().isoformat(),
+            "signature_verified": True,
+            "headers": headers_dict,
+            "payload": data
+        }
         
-        logger.info(f"Stored webhook event: {filename} | Event: {data.get('event', 'unknown')}")
+        with open(filepath, "w") as f:
+            json.dump(webhook_with_metadata, f, indent=2)
+        
+        logger.info(f"✓ Webhook stored: {filename}")
+        
+        # Log for dashboard
+        event_key = "unknown"
+        if isinstance(data, dict) and "events" in data:
+            events_list = data.get("events", [])
+            if events_list:
+                event_key = events_list[0].get("eventKey", "unknown")
+        
+        logger.info(f"Stored webhook event: {filename} | Event: {event_key}")
         return {
             "success": True,
             "message": f"Webhook received and stored as {filename}",
             "filename": filename
         }
+    except HTTPException:
+        # Re-raise HTTP exceptions without wrapping
+        raise
     except Exception as e:
         logger.error(f"Error processing webhook: {e}")
         raise HTTPException(status_code=500, detail=str(e))
@@ -510,6 +595,88 @@ async def test() -> str:
     </body>
     </html>
     """
+
+
+@app.get("/headers", response_class=HTMLResponse)
+async def show_headers() -> str:
+    """Show headers from recent webhooks for debugging."""
+    headers_info = []
+    try:
+        # Get last 5 webhook files
+        files = sorted(STORAGE_DIR.glob("*.json"), key=lambda f: f.stat().st_mtime, reverse=True)[:5]
+        
+        for file in files:
+            try:
+                with open(file, "r") as f:
+                    data = json.load(f)
+                
+                if isinstance(data, dict) and "headers" in data:
+                    headers = data.get("headers", {})
+                    timestamp = data.get("timestamp", "unknown")
+                    headers_info.append({
+                        "file": file.name,
+                        "timestamp": timestamp,
+                        "headers": headers
+                    })
+            except:
+                pass
+    except Exception as e:
+        logger.error(f"Error reading headers: {e}")
+    
+    # Generate HTML table with headers
+    html = """
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <title>Webhook Headers</title>
+        <style>
+            body { font-family: monospace; padding: 20px; background: #f5f5f5; }
+            .header-section { background: white; margin: 20px 0; padding: 15px; border-radius: 5px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+            .file-name { font-weight: bold; color: #333; margin-bottom: 10px; }
+            .timestamp { font-size: 12px; color: #666; margin-bottom: 10px; }
+            table { width: 100%; border-collapse: collapse; }
+            th, td { padding: 8px; text-align: left; border-bottom: 1px solid #ddd; }
+            th { background: #f0f0f0; font-weight: bold; }
+            .secret { background: #fff3cd; padding: 2px 6px; border-radius: 3px; }
+            .api-key { background: #d1ecf1; padding: 2px 6px; border-radius: 3px; }
+        </style>
+    </head>
+    <body>
+        <h1>🔐 Webhook Headers (Last 5)</h1>
+        <p><a href="/">Back to Dashboard</a></p>
+    """
+    
+    if headers_info:
+        for info in headers_info:
+            html += f"""
+            <div class="header-section">
+                <div class="file-name">{info['file']}</div>
+                <div class="timestamp">{info['timestamp']}</div>
+                <table>
+                    <tr><th>Header</th><th>Value</th></tr>
+            """
+            for key, value in info['headers'].items():
+                # Highlight potential secret fields
+                if 'signature' in key.lower() or 'x-hub' in key.lower():
+                    html += f'<tr><td style="background: #ff6b6b; color: white; font-weight: bold;"><strong>🔐 {key}</strong></td><td style="background: #ff6b6b; color: white;"><code>{value}</code></td></tr>'
+                elif 'secret' in key.lower() or 'authorization' in key.lower() or 'x-webhook-secret' in key.lower():
+                    html += f'<tr><td class="secret"><strong>{key}</strong></td><td class="secret"><strong>{value}</strong></td></tr>'
+                elif 'api' in key.lower() or 'token' in key.lower():
+                    html += f'<tr><td class="api-key"><strong>{key}</strong></td><td class="api-key"><strong>{value}</strong></td></tr>'
+                else:
+                    html += f'<tr><td>{key}</td><td>{value}</td></tr>'
+            html += """
+                </table>
+            </div>
+            """
+    else:
+        html += "<p>No webhooks with headers found yet.</p>"
+    
+    html += """
+    </body>
+    </html>
+    """
+    return html
 
 
 if __name__ == "__main__":
