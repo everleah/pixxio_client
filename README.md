@@ -99,6 +99,7 @@ result = files.upload_and_wait(
 | **[Error Handling](docs/ERROR_HANDLING.md)** | Exception types and error handling patterns |
 | **[Type System](docs/TYPE_SYSTEM.md)** | Type hints and custom types documentation |
 | **[Metadata Builders](docs/METADATA_BUILDERS.md)** | How to use builder classes for standard and custom metadata |
+
 ## 🏷️ Metadata Builder Classes
 
 The client provides builder classes to simplify the construction of metadata payloads for both standard and custom metadata fields. These builders ensure correct formatting and type handling for all field types, including text, date, selection, and multiselection.

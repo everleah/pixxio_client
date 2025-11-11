@@ -1,25 +1,5 @@
 # Webhook Stub - Troubleshooting Guide
 
-## Health Check Failures
-
-### ❌ "ModuleNotFoundError: No module named 'requests'"
-
-**Symptom**: Container marked as unhealthy, logs show requests import error
-
-**Root Cause**: Dockerfile missing `requests` package
-
-**Fix**:
-```bash
-# Rebuild image with all dependencies
-docker-compose build --no-cache
-docker-compose up -d
-
-# Wait ~30 seconds for health check to pass
-docker-compose ps  # Status should show "healthy" after a minute
-```
-
----
-
 ## Connectivity Issues
 
 ### ❌ "Could not resolve host: pixxiostub.claudiapps.de"
