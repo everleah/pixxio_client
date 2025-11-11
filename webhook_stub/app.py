@@ -93,16 +93,41 @@ TEMPLATE = """
         tr:hover {
             background: #f9f9f9;
         }
+        .show-btn {
+            background: #2196F3;
+            color: white;
+            padding: 8px 12px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            margin-right: 3px;
+            min-width: 36px;
+            height: 36px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.2s;
+        }
+        .show-btn:hover {
+            background: #0b7dda;
+        }
         .download-btn {
             background: #667eea;
             color: white;
-            padding: 8px 16px;
+            padding: 8px 12px;
             border: none;
             border-radius: 5px;
             cursor: pointer;
             text-decoration: none;
-            display: inline-block;
-            font-size: 14px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            margin-right: 3px;
+            min-width: 36px;
+            height: 36px;
+            transition: background 0.2s;
         }
         .download-btn:hover {
             background: #5568d3;
@@ -110,35 +135,80 @@ TEMPLATE = """
         .delete-btn {
             background: #f44336;
             color: white;
-            padding: 8px 16px;
+            padding: 8px 12px;
             border: none;
             border-radius: 5px;
             cursor: pointer;
-            font-size: 14px;
+            font-size: 16px;
+            min-width: 36px;
+            height: 36px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.2s;
         }
         .delete-btn:hover {
             background: #da190b;
         }
-        .empty-state {
-            text-align: center;
-            padding: 60px 20px;
-            color: #999;
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
         }
-        .empty-state-icon {
-            font-size: 48px;
+        .modal-content {
+            background-color: #fefefe;
+            margin: 5% auto;
+            padding: 20px;
+            border-radius: 8px;
+            max-width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+        }
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
             margin-bottom: 20px;
+            border-bottom: 1px solid #ddd;
+            padding-bottom: 10px;
         }
-        .clear-all {
-            background: #ff9800;
-            color: white;
-            padding: 10px 20px;
-            border: none;
-            border-radius: 5px;
+        .modal-header h2 {
+            margin: 0;
+            color: #333;
+        }
+        .modal-close {
+            font-size: 28px;
+            font-weight: bold;
+            color: #aaa;
             cursor: pointer;
-            margin-top: 20px;
+            background: none;
+            border: none;
+            padding: 0;
+            line-height: 1;
         }
-        .clear-all:hover {
-            background: #e68900;
+        .modal-close:hover {
+            color: #000;
+        }
+        .json-viewer {
+            background: #f5f5f5;
+            padding: 15px;
+            border-radius: 5px;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            max-height: 60vh;
+            overflow-y: auto;
+            border: 1px solid #ddd;
+        }
+        .json-viewer code {
+            color: #333;
         }
     </style>
 </head>
@@ -158,7 +228,7 @@ TEMPLATE = """
                     <tr>
                         <th>Timestamp</th>
                         <th>Event Type</th>
-                        <th>Filename</th>
+                        <th>Events</th>
                         <th>Size</th>
                         <th>Actions</th>
                     </tr>
@@ -167,18 +237,19 @@ TEMPLATE = """
                     {% for event in events %}
                     <tr>
                         <td>{{ event.timestamp }}</td>
-                        <td><code>{{ event.event_type }}</code></td>
-                        <td>{{ event.filename }}</td>
+                        <td><code style="font-size: 11px;">{{ event.event_type }}</code></td>
+                        <td><span style="background: #e3f2fd; padding: 2px 8px; border-radius: 3px; font-weight: 500;">{{ event.event_count }}</span></td>
                         <td>{{ event.size }} KB</td>
                         <td>
-                            <a href="/download/{{ event.filename }}" class="download-btn">Download</a>
-                            <button class="delete-btn" onclick="deleteEvent('{{ event.filename }}')">Delete</button>
+                            <button class="show-btn" onclick="showJSON('{{ event.filename }}')" title="Show JSON">👁️</button>
+                            <a href="/download/{{ event.filename }}" class="download-btn" title="Download JSON">⬇️</a>
+                            <button class="delete-btn" onclick="deleteEvent('{{ event.filename }}')" title="Delete event">🗑️</button>
                         </td>
                     </tr>
                     {% endfor %}
                 </tbody>
             </table>
-            <button class="clear-all" onclick="clearAll()">Clear All Events</button>
+            <button class="clear-all" onclick="clearAll()" title="Delete all events">🗑️ Clear All Events</button>
         {% else %}
             <div class="empty-state">
                 <div class="empty-state-icon">📭</div>
@@ -188,7 +259,65 @@ TEMPLATE = """
             </div>
         {% endif %}
     </div>
+
+    <!-- JSON Viewer Modal -->
+    <div id="jsonModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Webhook Payload</h2>
+                <button class="modal-close" onclick="closeJSON()">&times;</button>
+            </div>
+            <div class="json-viewer" id="jsonContent"><code></code></div>
+        </div>
+    </div>
+
     <script>
+        function showJSON(filename) {
+            fetch(`/download/${filename}`)
+                .then(r => r.text())
+                .then(json => {
+                    try {
+                        // Parse and pretty print JSON
+                        const data = JSON.parse(json);
+                        const formatted = JSON.stringify(data, null, 2);
+                        
+                        // Show in modal with syntax highlighting info
+                        const modal = document.getElementById('jsonModal');
+                        const contentDiv = document.getElementById('jsonContent');
+                        contentDiv.innerHTML = '';
+                        
+                        // Add filename header
+                        const fileInfo = document.createElement('div');
+                        fileInfo.style.cssText = 'margin-bottom: 15px; padding-bottom: 10px; border-bottom: 1px solid #ddd; font-size: 11px; color: #666;';
+                        fileInfo.textContent = `File: ${filename}`;
+                        contentDiv.appendChild(fileInfo);
+                        
+                        // Add JSON code
+                        const code = document.createElement('code');
+                        code.textContent = formatted;
+                        code.style.display = 'block';
+                        contentDiv.appendChild(code);
+                        
+                        modal.style.display = 'block';
+                    } catch (e) {
+                        alert('Error parsing JSON: ' + e);
+                    }
+                })
+                .catch(e => alert('Error loading JSON: ' + e));
+        }
+
+        function closeJSON() {
+            document.getElementById('jsonModal').style.display = 'none';
+        }
+
+        // Close modal when clicking outside it
+        window.onclick = function(event) {
+            const modal = document.getElementById('jsonModal');
+            if (event.target === modal) {
+                modal.style.display = 'none';
+            }
+        }
+
         function deleteEvent(filename) {
             if (confirm(`Delete event "${filename}"?`)) {
                 fetch(`/delete/${filename}`, { method: 'POST' })
@@ -221,27 +350,55 @@ async def index(request: Request) -> str:
             try:
                 with open(file, "r") as f:
                     data = json.load(f)
-                event_type = data.get("event", "unknown")
-            except:
-                event_type = "invalid"
+                
+                # Extract event type from PIXXIO webhook structure
+                event_type = "unknown"
+                event_count_in_file = 0
+                
+                if isinstance(data, dict) and "events" in data:
+                    events_list = data.get("events", [])
+                    event_count_in_file = len(events_list)
+                    if events_list and len(events_list) > 0:
+                        first_event = events_list[0]
+                        event_key = first_event.get("eventKey", "unknown")
+                        action = first_event.get("action", "")
+                        
+                        # Format event type nicely
+                        if action:
+                            event_type = f"{action.capitalize()} - {event_key}"
+                        else:
+                            event_type = event_key
+                else:
+                    # Fallback for old format
+                    event_type = data.get("event", "unknown")
+            except Exception as e:
+                logger.error(f"Error parsing event {file.name}: {e}")
+                event_type = "parse-error"
             
             events.append({
                 "filename": file.name,
                 "timestamp": datetime.fromtimestamp(file.stat().st_mtime).strftime("%Y-%m-%d %H:%M:%S"),
                 "event_type": event_type,
-                "size": f"{size:.2f}"
+                "size": f"{size:.2f}",
+                "event_count": event_count_in_file
             })
     except Exception as e:
         logger.error(f"Error reading events: {e}")
     
     webhook_url = str(request.url).split("?")[0].rstrip("/")
-    template = Template(TEMPLATE)
-    return template.render(
-        events=events,
-        event_count=len(events),
-        storage_location=str(STORAGE_DIR),
-        webhook_url=webhook_url
-    )
+    try:
+        template = Template(TEMPLATE)
+        html = template.render(
+            events=events,
+            event_count=len(events),
+            storage_location=str(STORAGE_DIR),
+            webhook_url=webhook_url
+        )
+        logger.info(f"Rendered HTML: {len(html)} bytes, events: {len(events)}")
+        return html
+    except Exception as e:
+        logger.error(f"Template render error: {e}")
+        raise HTTPException(status_code=500, detail=f"Template error: {str(e)}")
 
 
 @app.post("/webhook")
@@ -338,6 +495,21 @@ async def clear_all() -> Dict[str, Any]:
 async def health() -> Dict[str, Any]:
     """Health check endpoint."""
     return {"status": "ok", "storage_dir": str(STORAGE_DIR)}
+
+
+@app.get("/test", response_class=HTMLResponse)
+async def test() -> str:
+    """Simple test endpoint to verify app is running."""
+    return """
+    <!DOCTYPE html>
+    <html>
+    <head><title>Test</title></head>
+    <body>
+        <h1>✅ FastAPI Webhook Stub is Running</h1>
+        <p><a href="/">Go to Dashboard</a></p>
+    </body>
+    </html>
+    """
 
 
 if __name__ == "__main__":

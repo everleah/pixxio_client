@@ -211,23 +211,39 @@ Use for monitoring and uptime checks.
 
 Choose which PIXXIO events to monitor.
 
-⚠️ **Note**: PIXXIO webhook events are **not documented** in the official API specification. The event names and payloads listed below are **estimated** based on common DAM system patterns. You'll discover actual event types by:
+**PIXXIO Webhook Event Structure:**
 
-1. Sending test webhooks from PIXXIO
-2. Viewing the captured events in webhook stub
-3. Analyzing the actual JSON payload structure
+PIXXIO webhooks are now **documented through actual payloads**! The webhook structure is:
 
-**Expected Event Categories** (to be confirmed by testing):
-- **File events**: `file.uploaded`, `file.deleted`, `file.moved`
-- **Metadata events**: `metadata.updated`, `keywords.changed`, `ratings.changed`
-- **Collection events**: `collection.created`, `collection.updated`, `collection.deleted`
-- **User events**: `user.login`, `user.logout`, `user.created`
-- **Job events**: `job.completed`, `job.failed`, `export.done`, `conversion.finished`
+```json
+{
+  "events": [
+    {
+      "id": 164137675,
+      "eventKey": "fileModifiedMetadataFieldText",
+      "action": "updated",
+      "name": "updateFile",
+      "createDate": "2025-11-11 13:32:52",
+      "userID": 130052009,
+      "userName": "admin_claudius",
+      "resourceType": "file",
+      "resourceID": 1930337128,
+      "resourceName": "-",
+      "data": { ... }
+    }
+  ]
+}
+```
+
+**Known Event Types** (discovered from webhook stub):
+- `fileModifiedMetadataFieldText` - Text metadata field changed
+- `fileModifiedFileStateID` - File state/status changed
+- `fileModifiedMetadataFieldMultiSelectionsAdded` - Multi-select metadata updated
 
 **Recommended approach**:
-1. Start with **"Select All Events"** to discover what PIXXIO actually sends
+1. Start with **"Select All Events"** in PIXXIO to capture everything
 2. Monitor webhook stub dashboard for incoming events
-3. Review captured payloads to understand structure
+3. Review captured payloads to understand available event types
 4. Then narrow down to specific event types you need
 
 ### Step 4: Test Connection
