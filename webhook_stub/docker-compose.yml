@@ -1,24 +1,27 @@
-version: "3.8"
+version: "3.9"
 
 services:
   webhook-stub:
     build: .
     container_name: pixxio-webhook-stub
-    ports:
-      - "5000:5000"
+    restart: unless-stopped
     volumes:
       - webhook_data:/data/webhooks
     environment:
       - WEBHOOK_STORAGE_DIR=/data/webhooks
-      - FLASK_ENV=production
-    restart: unless-stopped
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.webhook-stub.rule=Host(`pixxiostub.claudiapps.de`)"
+      - "traefik.http.routers.webhook-stub.entrypoints=websecure"
+      - "traefik.http.routers.webhook-stub.tls.certresolver=letsencrypt"
+      - "traefik.http.services.webhook-stub.loadbalancer.server.port=5000"
     networks:
-      - pixxio-network
+      - claudiapp-net
 
 volumes:
   webhook_data:
     driver: local
 
 networks:
-  pixxio-network:
-    driver: bridge
+  claudiapp-net:
+    external: true
