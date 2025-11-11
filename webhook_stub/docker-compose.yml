@@ -1,0 +1,24 @@
+version: "3.8"
+
+services:
+  webhook-stub:
+    build: .
+    container_name: pixxio-webhook-stub
+    ports:
+      - "5000:5000"
+    volumes:
+      - webhook_data:/data/webhooks
+    environment:
+      - WEBHOOK_STORAGE_DIR=/data/webhooks
+      - FLASK_ENV=production
+    restart: unless-stopped
+    networks:
+      - pixxio-network
+
+volumes:
+  webhook_data:
+    driver: local
+
+networks:
+  pixxio-network:
+    driver: bridge
