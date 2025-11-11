@@ -314,8 +314,8 @@ PIXXIO webhooks are now **documented through actual payloads**! The webhook stru
 
 ### Step 4: Test Connection
 
-1. Click **Test Webhook** button in PIXXIO
-2. PIXXIO sends a test payload to your webhook stub
+1. Change Data in PIXXIO (or something other that creates an event)
+2. PIXXIO sends a payload to your webhook stub
 3. Check webhook stub dashboard
 4. Event should appear in the list immediately
 
