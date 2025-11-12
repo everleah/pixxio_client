@@ -228,6 +228,7 @@ class Client:
             ```python
             client = Client.create_client("api-key", "company.pixxio.com")
             
+            
             # Make some requests...
             files = File(client)
             
@@ -240,6 +241,32 @@ class Client:
         """
         self._session = None
 
+
+# Webhook parser exports (generalized approach - single EventData class handles all event types)
+from .webhook_parser import (
+    WebhookParser,
+    WebhookEvent,
+    EventData,
+    parse_pixxio_webhook,
+    EventAction,
+    ResourceType,
+    EventKey,
+)
+
+__all__ = [
+    # Authentication and Client
+    "Authentication",
+    "Client",
+    # Webhook Parser - Generalized Approach
+    "WebhookParser",
+    "WebhookEvent",
+    "EventData",
+    "parse_pixxio_webhook",
+    "EventAction",
+    "ResourceType",
+    "EventKey",
+]
+        
 
     
         
