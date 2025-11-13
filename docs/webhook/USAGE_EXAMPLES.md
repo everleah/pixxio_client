@@ -706,6 +706,100 @@ def process_batch_with_truncate_and_languages():
 #    By: Claudius Hansch
 ```
 
+### Example 13: Handle Keyword Events (Added/Deleted)
+
+Process file keyword modification events:
+
+```python
+def handle_keyword_events(event):
+    """Handle keyword added/deleted events."""
+    if event.is_keywords_event():
+        if event.event_key == 'fileModifiedKeywordsAdded':
+            keywords = event.data.keywords_added
+            print(f"✨ Keywords added to '{event.resource_name}':")
+            print(f"   Keywords: {', '.join(keywords)}")
+            print(f"   By: {event.user_descriptive_name}")
+            print(f"   At: {event.timestamp}")
+        
+        elif event.event_key == 'fileModifiedKeywordsDeleted':
+            keywords = event.data.keywords_deleted
+            print(f"🗑️  Keywords removed from '{event.resource_name}':")
+            print(f"   Keywords: {', '.join(keywords)}")
+            print(f"   By: {event.user_descriptive_name}")
+            print(f"   At: {event.timestamp}")
+
+def process_keyword_events():
+    """Process webhooks containing keyword modification events."""
+    parser = WebhookParser()
+    
+    # Payload 551: Keywords added
+    keywords_added_payload = {
+        "events": [
+            {
+                "id": 1678336404,
+                "eventKey": "fileModifiedKeywordsAdded",
+                "action": "updated",
+                "name": "updateFile",
+                "createDate": "2025-11-13 13:40:51",
+                "modifyDate": "2025-11-13 13:40:51",
+                "userDescriptiveName": "Claudius Hansch",
+                "resourceID": 1376045043,
+                "resourceName": "tmprg44afs5_testdatei.txt",
+                "data": {
+                    "eventKey": "fileModifiedKeywordsAdded",
+                    "keywordsAdded": ["demo"]
+                }
+            }
+        ]
+    }
+    
+    # Payload 719: Keywords deleted
+    keywords_deleted_payload = {
+        "events": [
+            {
+                "id": 459041673,
+                "eventKey": "fileModifiedKeywordsDeleted",
+                "action": "updated",
+                "name": "updateFile",
+                "createDate": "2025-11-13 13:42:13",
+                "modifyDate": "2025-11-13 13:42:13",
+                "userDescriptiveName": "Claudius Hansch",
+                "resourceID": 1376045043,
+                "resourceName": "tmprg44afs5_testdatei.txt",
+                "data": {
+                    "eventKey": "fileModifiedKeywordsDeleted",
+                    "keywordsDeleted": ["example"]
+                }
+            }
+        ]
+    }
+    
+    print("Processing Keyword Added Event:")
+    print("=" * 50)
+    for event in parser.parse_webhook(keywords_added_payload):
+        handle_keyword_events(event)
+    
+    print("\nProcessing Keyword Deleted Event:")
+    print("=" * 50)
+    for event in parser.parse_webhook(keywords_deleted_payload):
+        handle_keyword_events(event)
+
+# Output:
+# Processing Keyword Added Event:
+# ==================================================
+# ✨ Keywords added to 'tmprg44afs5_testdatei.txt':
+#    Keywords: demo
+#    By: Claudius Hansch
+#    At: 2025-11-13 13:40:51
+#
+# Processing Keyword Deleted Event:
+# ==================================================
+# 🗑️  Keywords removed from 'tmprg44afs5_testdatei.txt':
+#    Keywords: example
+#    By: Claudius Hansch
+#    At: 2025-11-13 13:42:13
+```
+
 ## See Also
 
 - **PARSER_IMPLEMENTATION.md** - Complete implementation guide

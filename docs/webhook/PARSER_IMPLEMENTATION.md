@@ -229,6 +229,26 @@ if event.event_key == 'fileModifiedMetadataFieldTruncate':
     print(f"Previous values: {previous_values}")
 ```
 
+### Keywords Added to File
+**Event Key:** `fileModifiedKeywordsAdded`
+
+```python
+if event.event_key == 'fileModifiedKeywordsAdded':
+    keywords = event.data.keywords_added
+    print(f"Keywords added: {', '.join(keywords)}")
+    print(f"By: {event.user_descriptive_name}")
+```
+
+### Keywords Deleted from File
+**Event Key:** `fileModifiedKeywordsDeleted`
+
+```python
+if event.event_key == 'fileModifiedKeywordsDeleted':
+    keywords = event.data.keywords_deleted
+    print(f"Keywords removed: {', '.join(keywords)}")
+    print(f"By: {event.user_descriptive_name}")
+```
+
 ### Unknown/Future Event Types
 
 ```python
