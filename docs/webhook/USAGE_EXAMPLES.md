@@ -316,60 +316,6 @@ def save_webhook_to_db(webhook_json, db_session):
     db_session.commit()
 ```
 
-### Example 10: Async Webhook Handler (FastAPI)
-
-Handle webhooks asynchronously:
-
-```python
-from fastapi import FastAPI, HTTPException
-from pydantic import BaseModel
-from pixxio_client.webhook_parser import WebhookParser
-import asyncio
-
-app = FastAPI()
-parser = WebhookParser()
-
-class WebhookPayload(BaseModel):
-    """Webhook request body."""
-    pass
-
-@app.post("/webhooks/pixxio")
-async def handle_pixxio_webhook(payload: dict):
-    """Handle PIXXIO webhook asynchronously."""
-    try:
-        events = parser.parse_webhook(payload)
-        
-        # Process events in background
-        tasks = [process_event_async(e) for e in events]
-        results = await asyncio.gather(*tasks, return_exceptions=True)
-        
-        # Check for errors
-        errors = [r for r in results if isinstance(r, Exception)]
-        if errors:
-            raise HTTPException(status_code=400, detail=f"{len(errors)} events failed")
-        
-        return {"status": "received", "count": len(events)}
-    
-    except Exception as e:
-        raise HTTPException(status_code=400, detail=str(e))
-
-async def process_event_async(event):
-    """Process single event asynchronously."""
-    # Simulate async processing
-    await asyncio.sleep(0.1)
-    
-    if event.event_key == 'fileModifiedMetadataFieldText':
-        # Async operations here
-        await update_file_async(event)
-    
-    return event.id
-
-async def update_file_async(event):
-    """Async file update."""
-    # Your async code here
-    pass
-```
-
 ## Best Practices
 
 ### ✅ Do:
@@ -477,6 +423,139 @@ def track_changes(webhook_json):
         changes.append(change)
     
     return changes
+```
+
+### Example 11: Handle Multiple Events in One Webhook (Real Payloads)
+
+Process multiple events from a single webhook payload - a common pattern in PIXXIO:
+
+```python
+def handle_batch_webhook_events(webhook_payload):
+    """Handle multiple events in one webhook (real PIXXIO pattern)."""
+    parser = WebhookParser()
+    events = parser.parse_webhook(webhook_payload)
+    
+    print(f"Processing {len(events)} events from single webhook...\n")
+    
+    # Group events by type
+    by_type = {}
+    for event in events:
+        if event.event_key not in by_type:
+            by_type[event.event_key] = []
+        by_type[event.event_key].append(event)
+    
+    # Show summary
+    print(f"Event summary:")
+    for event_type, events_of_type in by_type.items():
+        print(f"  {event_type}: {len(events_of_type)} event(s)")
+    
+    # Process each event
+    for event in events:
+        if event.is_metadata_event():
+            # Handle all metadata changes
+            field_name = getattr(event.data, 'name', 'unknown')
+            new_value = getattr(event.data, 'new_text', None)
+            old_value = getattr(event.data, 'old_text', None)
+            print(f"\n✓ Metadata change: {field_name}")
+            print(f"  Old: {old_value}")
+            print(f"  New: {new_value}")
+            print(f"  By: {event.user_descriptive_name}")
+        
+        elif event.is_file_property_event():
+            # Handle file property changes
+            print(f"\n✓ File property change: {event.event_key}")
+            
+            # Handle different property types
+            if 'FileName' in event.event_key:
+                old_name = getattr(event.data, 'old_file_name', None)
+                new_name = getattr(event.data, 'new_file_name', None)
+                print(f"  Renamed: {old_name} → {new_name}")
+            
+            elif 'CreateDate' in event.event_key:
+                old_date = getattr(event.data, 'old_create_date', None)
+                new_date = getattr(event.data, 'new_create_date', None)
+                print(f"  Create date: {old_date} → {new_date}")
+            
+            else:
+                # Generic property display
+                for key, value in event.data._raw_data.items():
+                    if key.startswith('new'):
+                        print(f"  {key}: {value}")
+
+# Example with real PIXXIO webhook payload (multiple events)
+real_webhook_payload = {
+    "events": [
+        # Event 1: Metadata text field change
+        {
+            "id": 1858295187,
+            "eventKey": "fileModifiedMetadataFieldText",
+            "action": "updated",
+            "name": "updateFile",
+            "createDate": "2025-11-13 12:52:14",
+            "modifyDate": "2025-11-13 12:52:14",
+            "applicationKey": "iM91iRu6kb86Y6IaWMsK9T9q7",
+            "applicationName": "pixx.io",
+            "userType": "user",
+            "userID": 130052009,
+            "userName": "admin_claudius",
+            "userDescriptiveName": "Claudius Hansch",
+            "resourceType": "file",
+            "resourceID": 1376045043,
+            "resourceName": "-",
+            "resourceOwnerUserType": "",
+            "resourceOwnerUserID": 0,
+            "resourceOwnerUserName": "",
+            "data": {
+                "eventKey": "fileModifiedMetadataFieldText",
+                "name": "Kurzbeschreibung",
+                "newText": "VIel X",
+                "oldText": None
+            }
+        },
+        # Event 2: File name change
+        {
+            "id": 1191684159,
+            "eventKey": "fileModifiedFileName",
+            "action": "updated",
+            "name": "updateFile",
+            "createDate": "2025-11-13 12:52:14",
+            "modifyDate": "2025-11-13 12:52:14",
+            "applicationKey": "iM91iRu6kb86Y6IaWMsK9T9q7",
+            "applicationName": "pixx.io",
+            "userType": "user",
+            "userID": 130052009,
+            "userName": "admin_claudius",
+            "userDescriptiveName": "Claudius Hansch",
+            "resourceType": "file",
+            "resourceID": 1376045043,
+            "resourceName": "tmprg44afs5.txt",
+            "resourceOwnerUserType": "user",
+            "resourceOwnerUserID": 1041188852,
+            "resourceOwnerUserName": "admin_hoerl",
+            "data": {
+                "eventKey": "fileModifiedFileName",
+                "newFileName": "tmprg44afs5_testdatei.txt",
+                "oldFileName": "tmprg44afs5.txt"
+            }
+        }
+    ]
+}
+
+handle_batch_webhook_events(real_webhook_payload)
+# Output:
+# Processing 2 events from single webhook...
+# 
+# Event summary:
+#   fileModifiedMetadataFieldText: 1 event(s)
+#   fileModifiedFileName: 1 event(s)
+#
+# ✓ Metadata change: Kurzbeschreibung
+#   Old: None
+#   New: VIel X
+#   By: Claudius Hansch
+#
+# ✓ File property change: fileModifiedFileName
+#   Renamed: tmprg44afs5.txt → tmprg44afs5_testdatei.txt
 ```
 
 ## See Also

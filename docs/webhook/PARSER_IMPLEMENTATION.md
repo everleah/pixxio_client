@@ -191,6 +191,26 @@ if event.event_key == 'fileModifiedFileStateID':
     print(f"File state: {old_state_id} → {new_state_id}")
 ```
 
+### File Name Change
+**Event Key:** `fileModifiedFileName`
+
+```python
+if event.event_key == 'fileModifiedFileName':
+    old_name = event.data.old_file_name
+    new_name = event.data.new_file_name
+    print(f"File renamed: {old_name} → {new_name}")
+```
+
+### File Create Date Change
+**Event Key:** `fileModifiedCreateDate`
+
+```python
+if event.event_key == 'fileModifiedCreateDate':
+    new_date = event.data.new_create_date
+    old_date = event.data.old_create_date
+    print(f"Create date changed: {old_date} → {new_date}")
+```
+
 ### Unknown/Future Event Types
 
 ```python

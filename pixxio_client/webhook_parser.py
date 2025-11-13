@@ -83,6 +83,11 @@ class EventKey(str, Enum):
     FILE_MODIFIED_LANGUAGE_CODES_REMOVED = "fileModifiedLanguageCodesRemoved"
     FILE_MODIFIED_FILE_STATE_ID = "fileModifiedFileStateID"
     
+    # File property events
+    FILE_MODIFIED_FILE_NAME = "fileModifiedFileName"
+    FILE_MODIFIED_CREATE_DATE = "fileModifiedCreateDate"
+    FILE_MODIFIED_MODIFY_DATE = "fileModifiedModifyDate"
+    
     # File events
     FILE_CREATED = "fileCreated"
     FILE_UPLOADED = "fileUploaded"
@@ -258,6 +263,10 @@ class WebhookEvent:
     def is_state_event(self) -> bool:
         """Check if this event is about file state changes."""
         return "FileStateID" in self.event_key
+    
+    def is_file_property_event(self) -> bool:
+        """Check if this event is about file properties (name, dates, etc.)."""
+        return any(key in self.event_key for key in ["FileName", "CreateDate", "ModifyDate"])
     
     def is_user_action_by_admin(self) -> bool:
         """Check if this event was triggered by an admin user."""
