@@ -79,6 +79,7 @@ class EventKey(str, Enum):
     FILE_MODIFIED_METADATA_FIELD_TEXT = "fileModifiedMetadataFieldText"
     FILE_MODIFIED_METADATA_FIELD_MULTI_SELECTIONS_ADDED = "fileModifiedMetadataFieldMultiSelectionsAdded"
     FILE_MODIFIED_METADATA_FIELD_MULTI_SELECTIONS_REMOVED = "fileModifiedMetadataFieldMultiSelectionsRemoved"
+    FILE_MODIFIED_METADATA_FIELD_TRUNCATE = "fileModifiedMetadataFieldTruncate"
     FILE_MODIFIED_LANGUAGE_CODES_ADDED = "fileModifiedLanguageCodesAdded"
     FILE_MODIFIED_LANGUAGE_CODES_REMOVED = "fileModifiedLanguageCodesRemoved"
     FILE_MODIFIED_FILE_STATE_ID = "fileModifiedFileStateID"

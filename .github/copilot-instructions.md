@@ -143,27 +143,55 @@ When implementing new resources:
 - **Complex filtering**: API supports sophisticated filter objects for searches
 - **File operations**: Upload, convert, and download with various format options
 
-## Webhook Support (Future Enhancement)
-**⚠️ Not Currently Available**: PIXXIO webhooks are not part of the current API specification or this client library.
+## Webhook Support (Production Ready ✅)
 
-**PIXXIO Webhook System:**
-- **Admin-Level Configuration**: Webhooks can be configured in PIXXIO system (name, URL, secret, description, events)
-- **Missing API Endpoints**: No REST API endpoints for webhook management found in current specification
-- **Limited Documentation**: Webhook functionality exists but lacks comprehensive API documentation
+**Status: Now Available** - Generalized webhook parser for all PIXXIO event types
 
-**Potential Implementation Approaches:**
-1. **Polling Pattern**: Use Jobs API to periodically check for completion status
-2. **Notification Enhancement**: Extend existing `notificationText` features  
-3. **Custom Webhook Server**: Build separate service to receive PIXXIO notifications
-4. **API Extension**: Contact PIXXIO for webhook endpoint availability
+**PIXXIO Webhook Parser:**
+- **File**: `pixxio_client/webhook_parser.py`
+- **Architecture**: Generalized, schema-agnostic design (no hardcoded event classes)
+- **Event Coverage**: 200+ known event types + automatic support for future types
+- **Documentation**: Complete guides in `docs/webhook/` folder
 
-**Current Notification Features:**
-- Email notifications in external shares (`notificationText`)
-- Upload confirmation messages in upload links
-- Job status tracking via `/api/v1/jobs/{id}` endpoint
+**Core Components:**
+- `WebhookParser`: Main parser class for processing JSON payloads
+- `WebhookEvent`: Parsed event with consistent structure
+- `EventData`: Flexible container for any event type's data
+- `EventKey` enum: Known event types (auto-extensible)
+- Helper methods: `is_file_event()`, `is_metadata_event()`, etc.
+
+**Key Features:**
+- Automatic camelCase → snake_case field conversion
+- Both field name formats always available
+- Type-safe dot notation access: `event.data.field_name`
+- Fallback to raw dict: `event.data.raw` or `event.data._raw_data`
+- 11 comprehensive unit tests (all passing)
+- 8+ practical usage examples
+
+**Known Event Types (Validated with Real Payloads):**
+- File metadata: text changes, multi-selections, truncate
+- File properties: name, create date, modify date
+- Language codes: added/removed
+- File state changes
+- Collection/user/portal events
+- And 190+ more...
+
+**Documentation:**
+- `docs/webhook/QUICK_START.md` - 5-minute getting started
+- `docs/webhook/PARSER_IMPLEMENTATION.md` - Complete reference
+- `docs/webhook/USAGE_EXAMPLES.md` - 12 practical examples
+- `docs/webhook/README.md` - Navigation hub
+
+**Testing:**
+- `tests/test_webhook_parser_generalized.py` - 11 unit tests
+- `test_webhook_payloads.py` - Batch 1: 4 real PIXXIO payloads
+- `test_webhook_payloads_batch2.py` - Batch 2: 4 additional real payloads
+- All tests passing, no regressions
 
 ## Important Notes
 - **Setup bug**: `setup.py` has `find_packages(include=["celum_client*"])` - should be `["pixxio_client*"]`
 - **No auth validation**: Invalid API keys cause runtime errors, not startup validation
 - **File uploads**: Use `files={"file": file_handle}` format with `ResourceUploadMixin`
 - **API documentation**: All exceptions inherit from custom classes in `exceptions.py`
+- **Webhook field names**: Use snake_case in Python code (camelCase also available)
+- **Type checker hints**: Use `# type: ignore[attr-defined]` for dynamic EventData attributes

@@ -558,6 +558,154 @@ handle_batch_webhook_events(real_webhook_payload)
 #   Renamed: tmprg44afs5.txt → tmprg44afs5_testdatei.txt
 ```
 
+### Example 12: Handle Metadata Truncate & Language Code Events
+
+Process metadata field truncate (clear) and language code modification events:
+
+```python
+def handle_metadata_truncate_and_languages(event):
+    """Handle metadata field truncate and language code events."""
+    import json
+    
+    if event.event_key == 'fileModifiedMetadataFieldTruncate':
+        # Field was completely cleared
+        field_name = event.data.name
+        old_data_json = event.data.old_data  # JSON string format
+        previous_values = json.loads(old_data_json)
+        
+        print(f"🗑️  Field cleared: {field_name}")
+        print(f"   Previous data: {previous_values}")
+        print(f"   By: {event.user.email}")
+    
+    elif event.event_key == 'fileModifiedLanguageCodesAdded':
+        # Language codes were added to file
+        codes = event.data.language_codes_added
+        print(f"🌐 Languages added: {', '.join(codes)}")
+        print(f"   By: {event.user.email}")
+    
+    elif event.event_key == 'fileModifiedLanguageCodesRemoved':
+        # Language codes were removed from file
+        codes = event.data.language_codes_removed
+        print(f"❌ Languages removed: {', '.join(codes)}")
+        print(f"   By: {event.user.email}")
+
+# Example with real payloads showing all three event types
+def process_batch_with_truncate_and_languages():
+    """Process webhooks with truncate and language code events."""
+    parser = WebhookParser()
+    
+    # Payload 432: Two truncate events
+    truncate_payload = {
+        "events": [
+            {
+                "id": 2106034205,
+                "eventKey": "fileModifiedMetadataFieldTruncate",
+                "action": "updated",
+                "name": "updateFile",
+                "createDate": "2025-11-13 13:24:52",
+                "modifyDate": "2025-11-13 13:24:52",
+                "userDescriptiveName": "Claudius Hansch",
+                "resourceID": 1376045043,
+                "data": {
+                    "eventKey": "fileModifiedMetadataFieldTruncate",
+                    "name": "Produktbereich",
+                    "oldData": "[\"Kabel\"]"
+                }
+            },
+            {
+                "id": 1435646945,
+                "eventKey": "fileModifiedMetadataFieldTruncate",
+                "action": "updated",
+                "name": "updateFile",
+                "createDate": "2025-11-13 13:24:52",
+                "modifyDate": "2025-11-13 13:24:52",
+                "userDescriptiveName": "Claudius Hansch",
+                "resourceID": 1376045043,
+                "data": {
+                    "eventKey": "fileModifiedMetadataFieldTruncate",
+                    "name": "Kanal",
+                    "oldData": "[\"STEP\"]"
+                }
+            }
+        ]
+    }
+    
+    # Payload 437: Language codes added
+    lang_added_payload = {
+        "events": [
+            {
+                "id": 759112203,
+                "eventKey": "fileModifiedLanguageCodesAdded",
+                "action": "updated",
+                "name": "updateFile",
+                "createDate": "2025-11-13 13:24:52",
+                "modifyDate": "2025-11-13 13:24:52",
+                "userDescriptiveName": "Claudius Hansch",
+                "resourceID": 1376045043,
+                "data": {
+                    "eventKey": "fileModifiedLanguageCodesAdded",
+                    "languageCodesAdded": ["ar-dz", "sq"]
+                }
+            }
+        ]
+    }
+    
+    # Payload 435: Language codes removed
+    lang_removed_payload = {
+        "events": [
+            {
+                "id": 1592957052,
+                "eventKey": "fileModifiedLanguageCodesRemoved",
+                "action": "updated",
+                "name": "updateFile",
+                "createDate": "2025-11-13 13:24:52",
+                "modifyDate": "2025-11-13 13:24:52",
+                "userDescriptiveName": "Claudius Hansch",
+                "resourceID": 1376045043,
+                "data": {
+                    "eventKey": "fileModifiedLanguageCodesRemoved",
+                    "languageCodesRemoved": ["af"]
+                }
+            }
+        ]
+    }
+    
+    print("Processing Truncate Events:")
+    print("=" * 50)
+    for event in parser.parse_webhook(truncate_payload):
+        handle_metadata_truncate_and_languages(event)
+    
+    print("\nProcessing Language Added Event:")
+    print("=" * 50)
+    for event in parser.parse_webhook(lang_added_payload):
+        handle_metadata_truncate_and_languages(event)
+    
+    print("\nProcessing Language Removed Event:")
+    print("=" * 50)
+    for event in parser.parse_webhook(lang_removed_payload):
+        handle_metadata_truncate_and_languages(event)
+
+# Output:
+# Processing Truncate Events:
+# ==================================================
+# 🗑️  Field cleared: Produktbereich
+#    Previous data: ['Kabel']
+#    By: Claudius Hansch
+# 🗑️  Field cleared: Kanal
+#    Previous data: ['STEP']
+#    By: Claudius Hansch
+#
+# Processing Language Added Event:
+# ==================================================
+# 🌐 Languages added: ar-dz, sq
+#    By: Claudius Hansch
+#
+# Processing Language Removed Event:
+# ==================================================
+# ❌ Languages removed: af
+#    By: Claudius Hansch
+```
+
 ## See Also
 
 - **PARSER_IMPLEMENTATION.md** - Complete implementation guide

@@ -211,6 +211,24 @@ if event.event_key == 'fileModifiedCreateDate':
     print(f"Create date changed: {old_date} → {new_date}")
 ```
 
+### Metadata Field Truncate (Cleared)
+**Event Key:** `fileModifiedMetadataFieldTruncate`
+
+This event is triggered when a metadata field is completely cleared/truncated:
+
+```python
+if event.event_key == 'fileModifiedMetadataFieldTruncate':
+    field_name = event.data.name
+    old_data = event.data.old_data  # JSON string of old values
+    print(f"Field '{field_name}' was cleared")
+    print(f"Previous data: {old_data}")
+    
+    # old_data is a JSON string, parse if needed
+    import json
+    previous_values = json.loads(event.data.old_data)
+    print(f"Previous values: {previous_values}")
+```
+
 ### Unknown/Future Event Types
 
 ```python
