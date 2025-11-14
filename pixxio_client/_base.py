@@ -1,6 +1,6 @@
 import json
 import logging
-from typing import Optional, Dict, Any, Union, List, IO, TYPE_CHECKING
+from typing import Literal, Optional, Dict, Any, Union, List, IO, TYPE_CHECKING
 
 from types import SimpleNamespace
 from json import JSONEncoder
@@ -71,8 +71,12 @@ class ReadOnlyResourceBase:
         else:
             self.logger = logging.getLogger(self.__class__.__name__)
         self.endpoint_base = f'{self.client.location_base}/{self.NAME}'
+        
     
-    def set_response_fields(self, response_fields: ResponseFields) -> None:
+    def set_response_fields(self, 
+                            response_fields: ResponseFields, 
+                            method:Optional[Literal["GET", "POST", "PUT", "DELETE"]] = None,
+                            use_filter: bool = True) -> None:
         """
         Set the list of fields to include in API responses.
         
@@ -90,13 +94,16 @@ class ReadOnlyResourceBase:
             result = files.get()  # Only returns specified fields
             ```
         """
-        if self._response_field_filter is None:
+        allowed_response_fields = self.get_allowed_response_fields(method=method)
+        if allowed_response_fields is None:
             self.response_fields = response_fields
-        else:  # filter allowed response fields
+        elif use_filter:  # filter allowed response fields
             self.response_fields = [field for field in response_fields
-                                     if field in self._response_field_filter]
-
-    def set_response_field(self, response_field: str) -> int:
+                                     if field in allowed_response_fields]
+    def set_response_field(self, 
+                           response_field: str, 
+                           method:Optional[Literal["GET", "POST", "PUT", "DELETE"]] = None,
+                           use_filter: bool = True) -> bool:
         """
         Add a single field to the response fields list.
         
@@ -105,11 +112,13 @@ class ReadOnlyResourceBase:
         automatically prevented.
         
         Args:
-            response_field: Name of the field to add to response filtering
-            
+            response_field: Name of the field to add to response filtering.
+            method: Optional; HTTP method ("GET", "POST", "PUT", "DELETE") for which allowed response fields are checked. Default is None.
+            use_filter: Optional; If True (default), filter the field against allowed response fields for the given method.
+        
         Returns:
-            int: Total number of fields in the response fields list
-            
+            bool: True if the field was added or already present, False if it was not allowed
+        
         Example:
             ```python
             files = File(client)
@@ -118,16 +127,18 @@ class ReadOnlyResourceBase:
             count = files.set_response_field('subject')  # Returns 3
             ```
         """
-        if self._response_field_filter is not None:
-            if response_field not in self._response_field_filter:
-                return len(self.response_fields or [])
+        if use_filter:
+            allowed_response_fields = self.get_allowed_response_fields(method=method)
+            if allowed_response_fields is not None:
+                if response_field not in allowed_response_fields:
+                    return False
         if self.response_fields and response_field not in self.response_fields:
             self.response_fields.append(response_field)
         elif not self.response_fields:
             self.response_fields = [response_field]
-        return len(self.response_fields)
+        return True
     
-    def get_allowed_response_fields(self) -> Optional[List[str]]:
+    def get_allowed_response_fields(self, method:Optional[Literal["GET", "POST", "PUT", "DELETE"]] = None) -> Optional[List[str]]:
         """
         Get the list of allowed response fields for this resource.
         
@@ -148,6 +159,14 @@ class ReadOnlyResourceBase:
                 print("All fields are allowed")
             ```
         """
+        if isinstance(self._response_field_filter, dict):
+            if method is not None:
+                return self._response_field_filter.get(method, None)
+            all_response_fields = set()
+            for fields in self._response_field_filter.values():
+                if fields is not None:
+                    all_response_fields.update(fields)
+            return list(all_response_fields)
         return self._response_field_filter
 
     def _transform_params(self, params_dict: dict) -> List[tuple[str, str]]:
