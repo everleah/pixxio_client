@@ -807,6 +807,96 @@ class _ResponseObject(SimpleNamespace):
             return super().__getattribute__(value)
         except AttributeError:
             return None
+    
+    def __str__(self) -> str:
+        """
+        Return a nicely formatted string representation of the object.
+        
+        Returns a multi-line formatted output with proper indentation
+        for nested objects and lists. This provides a more readable
+        alternative to the default repr() output.
+        
+        Example:
+            ```python
+            obj = _ResponseObject(
+                id=123, 
+                name="test",
+                user=_ResponseObject(id=456, email="test@example.com")
+            )
+            print(obj)
+            # Output:
+            # _ResponseObject(
+            #   id: 123
+            #   name: test
+            #   user: _ResponseObject(
+            #     id: 456
+            #     email: test@example.com
+            #   )
+            # )
+            ```
+        """
+        return self._format_str(indent=0)
+    
+    def _format_str(self, indent: int = 0) -> str:
+        """
+        Format the object as a string with proper indentation.
+        
+        Args:
+            indent: Number of spaces to indent (used for nested objects)
+            
+        Returns:
+            str: Formatted string representation
+        """
+        indent_str = "  " * indent
+        next_indent_str = "  " * (indent + 1)
+        
+        lines = [f"_ResponseObject("]
+        
+        for key, value in self.__dict__.items():
+            formatted_value = self._format_value(value, indent + 1)
+            lines.append(f"{next_indent_str}{key}: {formatted_value}")
+        
+        lines.append(f"{indent_str})")
+        return "\n".join(lines)
+    
+    def _format_value(self, value: Any, indent: int) -> str:
+        """
+        Format a single value with appropriate handling for different types.
+        
+        Args:
+            value: The value to format
+            indent: Indentation level for nested structures
+            
+        Returns:
+            str: Formatted value string
+        """
+        if isinstance(value, _ResponseObject):
+            return value._format_str(indent)
+        elif isinstance(value, list):
+            if not value:
+                return "[]"
+            if len(value) <= 3 and all(not isinstance(v, (_ResponseObject, list, dict)) for v in value):
+                # Short list of simple values - show inline
+                return f"[{', '.join(repr(v) if isinstance(v, str) else str(v) for v in value)}]"
+            else:
+                # Multi-line list
+                indent_str = "  " * indent
+                next_indent_str = "  " * (indent + 1)
+                items = [f"{next_indent_str}{self._format_value(v, indent + 1)}" for v in value]
+                return f"[\n{chr(10).join(items)}\n{indent_str}]"
+        elif isinstance(value, dict):
+            if not value:
+                return "{}"
+            indent_str = "  " * indent
+            next_indent_str = "  " * (indent + 1)
+            items = [f"{next_indent_str}{k}: {self._format_value(v, indent + 1)}" for k, v in value.items()]
+            return f"{{\n{chr(10).join(items)}\n{indent_str}}}"
+        elif isinstance(value, str):
+            return f"'{value}'"
+        elif value is None:
+            return "None"
+        else:
+            return str(value)
 
 
 class _ObjectJSONEncoder(JSONEncoder):
