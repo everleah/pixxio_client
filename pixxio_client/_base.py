@@ -130,6 +130,11 @@ class _ResponseObject(SimpleNamespace):
             return "None"
         else:
             return str(value)
+        
+    def to_dict(self, keys_to_int: bool = False) -> dict:
+        if keys_to_int:
+            return {int(k) if k.isdigit() else k: v for k, v in self.__dict__.items()}  
+        return self.__dict__
 class ReadOnlyResourceBase:
     """
     Base class for read-only API resources providing GET operations.
