@@ -4,7 +4,7 @@ import os
 
 from typing import Optional, Any
 
-from ._base import ResourceBase, ResourceUploadMixin, ResourceJobMixin
+from ._base import ResourceBase, ResourceUploadMixin, ResourceJobMixin, _ResponseObject
 from .pixxio_types import PIXXIOId, ResponseData
 
 class FileUpdateBuilder:
@@ -496,6 +496,9 @@ class FileUploadBuilder:
                 result[key] = json.dumps(result[key])
         return result
 
+class FileResponseObject(_ResponseObject):
+    pass
+
 class File(ResourceBase, ResourceUploadMixin, ResourceJobMixin):
     """
     File resource for managing digital assets in PIXXIO.
@@ -538,6 +541,8 @@ class File(ResourceBase, ResourceUploadMixin, ResourceJobMixin):
         "GET_LIST": ["uploadDate", "modifyDate", "createDate", "id", "fileName", "fileExtension", "fileType", "subject", "description", "width", "height", "pixel", "colorspace", "orientation", "fileSize", "md5sum", "keywords", "keywordsRecognition", "rating", "rotation", "fileState", "isDownloadLocked", "isArchived", "isRotatable", "isConvertible", "isCheckedOut", "isMainVersion", "hasSubversions", "originalFileURL", "previewFileURL", "clipFileURL", "modifiedPreviewFileURLs", "user", "creator", "location", "directory", "permissions", "metadataFields", "dominantColor", "variantStack", "languageCodes", "isMarked", "staticCollections", "versions", "importantMetadata", "licenseReleases", "modelReleases", "propertyReleases"],
         "GET_SINGLE": ["uploadDate", "modifyDate", "createDate", "id", "fileName", "fileExtension", "fileType", "subject", "description", "width", "height", "pixel", "colorspace", "orientation", "fileSize", "md5sum", "keywords", "keywordsRecognition", "rating", "rotation", "fileState", "isDownloadLocked", "isArchived", "isRotatable", "isConvertible", "isCheckedOut", "isMainVersion", "hasSubversions", "originalFileURL", "previewFileURL", "clipFileURL", "modifiedPreviewFileURLs", "user", "creator", "location", "directory", "permissions", "metadataFields", "dominantColor", "variantStack", "languageCodes", "isMarked", "staticCollections", "versions", "metadata", "importantMetadata", "unimportantMetadata", "usePanoramaViewer", "licenseReleases", "modelReleases", "propertyReleases"]
         }
+    
+    _get_single_response_cls = FileResponseObject
 
     def upload_url_and_wait(self, file_url: str,  timeout: int = 300, poll_interval: float = 2.0, **form_data: Any) -> ResponseData:
         """

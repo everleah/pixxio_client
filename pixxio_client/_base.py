@@ -15,7 +15,121 @@ from .pixxio_types import (
 if TYPE_CHECKING:
     from . import Client
 
+class _ResponseObject(SimpleNamespace):
+    """
+    Custom namespace object that returns None for missing attributes.
+    
+    This class extends SimpleNamespace to provide more graceful handling
+    of missing attributes in API responses. Instead of raising AttributeError,
+    it returns None for attributes that don't exist.
+    
+    This is particularly useful when working with API responses that may
+    have varying field structures or optional fields.
+    
+    Example:
+        ```python
+        obj = _ResponseObject(id=123, name="test")
+        print(obj.id)          # 123
+        print(obj.name)        # "test"  
+        print(obj.missing)     # None (no AttributeError)
+        ```
+    """
 
+    def __getattribute__(self, value: str) -> Any:
+        try:
+            return super().__getattribute__(value)
+        except AttributeError:
+            return None
+    
+    def __str__(self) -> str:
+        """
+        Return a nicely formatted string representation of the object.
+        
+        Returns a multi-line formatted output with proper indentation
+        for nested objects and lists. This provides a more readable
+        alternative to the default repr() output.
+        
+        Example:
+            ```python
+            obj = _ResponseObject(
+                id=123, 
+                name="test",
+                user=_ResponseObject(id=456, email="test@example.com")
+            )
+            print(obj)
+            # Output:
+            # _ResponseObject(
+            #   id: 123
+            #   name: test
+            #   user: _ResponseObject(
+            #     id: 456
+            #     email: test@example.com
+            #   )
+            # )
+            ```
+        """
+        return self._format_str(indent=0)
+    
+    def _format_str(self, indent: int = 0) -> str:
+        """
+        Format the object as a string with proper indentation.
+        
+        Args:
+            indent: Number of spaces to indent (used for nested objects)
+            
+        Returns:
+            str: Formatted string representation
+        """
+        indent_str = "  " * indent
+        next_indent_str = "  " * (indent + 1)
+        
+        lines = [f"_ResponseObject("]
+        
+        for key, value in self.__dict__.items():
+            formatted_value = self._format_value(value, indent + 1)
+            lines.append(f"{next_indent_str}{key}: {formatted_value}")
+        
+        lines.append(f"{indent_str})")
+        return "\n".join(lines)
+    
+    def _format_value(self, value: Any, indent: int) -> str:
+        """
+        Format a single value with appropriate handling for different types.
+        
+        Args:
+            value: The value to format
+            indent: Indentation level for nested structures
+            
+        Returns:
+            str: Formatted value string
+        """
+        if isinstance(value, _ResponseObject):
+            return value._format_str(indent)
+        elif isinstance(value, list):
+            if not value:
+                return "[]"
+            if len(value) <= 3 and all(not isinstance(v, (_ResponseObject, list, dict)) for v in value):
+                # Short list of simple values - show inline
+                return f"[{', '.join(repr(v) if isinstance(v, str) else str(v) for v in value)}]"
+            else:
+                # Multi-line list
+                indent_str = "  " * indent
+                next_indent_str = "  " * (indent + 1)
+                items = [f"{next_indent_str}{self._format_value(v, indent + 1)}" for v in value]
+                return f"[\n{chr(10).join(items)}\n{indent_str}]"
+        elif isinstance(value, dict):
+            if not value:
+                return "{}"
+            indent_str = "  " * indent
+            next_indent_str = "  " * (indent + 1)
+            items = [f"{next_indent_str}{k}: {self._format_value(v, indent + 1)}" for k, v in value.items()]
+            return f"{{\n{chr(10).join(items)}\n{indent_str}}}"
+        elif isinstance(value, str):
+            return f"'{value}'"
+        elif value is None:
+            return "None"
+        else:
+            return str(value)
 class ReadOnlyResourceBase:
     """
     Base class for read-only API resources providing GET operations.
@@ -51,6 +165,8 @@ class ReadOnlyResourceBase:
     """
     _paged: bool = True
     _response_field_filter = None  # type: Optional[List[str] | Dict[str, Optional[List[str]]]]
+    _get_single_response_cls: type = _ResponseObject 
+    _get_list_response_cls: type = _ResponseObject      
     
     NAME: str  # Must be defined by subclasses
     
@@ -244,7 +360,7 @@ class ReadOnlyResourceBase:
             )
         except Exception as ex:
             raise get_response_exception(ex)
-        return self._parseResponse(response)
+        return self._parseResponse(response, self._get_list_response_cls if is_list_request else self._get_single_response_cls)
     
     def get(self, id: Optional[PIXXIOId] = None, **params: Any) -> ResponseData:
         """
@@ -277,12 +393,13 @@ class ReadOnlyResourceBase:
         """
         if id is None:
             return self._get(
-                endpoint_base=self.endpoint_base, **params)
+                endpoint_base=self.endpoint_base, 
+                **params)
         return self._get(
             endpoint_base=f"{self.endpoint_base}/{id}", 
             **params)
     
-    def _parseResponse(self, response: Response) -> ResponseData:
+    def _parseResponse(self, response: Response, response_cls: type = _ResponseObject) -> ResponseData:
         """
         Parse HTTP response into a structured data object.
         
@@ -309,7 +426,7 @@ class ReadOnlyResourceBase:
         content = response.text
         if content:
             try:
-                response_object = Objectifier.from_json_str(content)
+                response_object = Objectifier.from_json_str(content, root_class=response_cls)
             except Exception as ex:
                 raise get_response_exception(
                     message=f"invalid response; maybe not json: {content}\r\n(err:{ex})")
@@ -358,6 +475,10 @@ class ResourceBase(ReadOnlyResourceBase):
         ```
     """
     
+    _post_response_cls: type = _ResponseObject  
+    _put_response_cls: type = _ResponseObject  
+    _delete_response_cls: type = _ResponseObject  
+    
     def _post(
             self, endpoint_base: str, json_data: Optional[JSONDict] = None, 
             form_data: Optional[Dict[str, Any]] = None, 
@@ -396,7 +517,7 @@ class ResourceBase(ReadOnlyResourceBase):
             )
         except Exception as ex:
             raise get_response_exception(ex)
-        return self._parseResponse(response)
+        return self._parseResponse(response, self._post_response_cls)
     
     def _put(self, endpoint_base: str, json_data: Optional[JSONDict] = None, 
              form_data: Optional[Dict[str, Any]] = None, **params: Any) -> ResponseData:
@@ -427,7 +548,7 @@ class ResourceBase(ReadOnlyResourceBase):
             )
         except Exception as ex:
             raise get_response_exception(ex)
-        return self._parseResponse(response)
+        return self._parseResponse(response, self._put_response_cls)
     
     def _delete(self, endpoint_base: str, **params: Any) -> ResponseData:
         """
@@ -782,123 +903,6 @@ class ResourceJobMixin:
         return response
 
 
-class _ResponseObject(SimpleNamespace):
-    """
-    Custom namespace object that returns None for missing attributes.
-    
-    This class extends SimpleNamespace to provide more graceful handling
-    of missing attributes in API responses. Instead of raising AttributeError,
-    it returns None for attributes that don't exist.
-    
-    This is particularly useful when working with API responses that may
-    have varying field structures or optional fields.
-    
-    Example:
-        ```python
-        obj = _ResponseObject(id=123, name="test")
-        print(obj.id)          # 123
-        print(obj.name)        # "test"  
-        print(obj.missing)     # None (no AttributeError)
-        ```
-    """
-
-    def __getattribute__(self, value: str) -> Any:
-        try:
-            return super().__getattribute__(value)
-        except AttributeError:
-            return None
-    
-    def __str__(self) -> str:
-        """
-        Return a nicely formatted string representation of the object.
-        
-        Returns a multi-line formatted output with proper indentation
-        for nested objects and lists. This provides a more readable
-        alternative to the default repr() output.
-        
-        Example:
-            ```python
-            obj = _ResponseObject(
-                id=123, 
-                name="test",
-                user=_ResponseObject(id=456, email="test@example.com")
-            )
-            print(obj)
-            # Output:
-            # _ResponseObject(
-            #   id: 123
-            #   name: test
-            #   user: _ResponseObject(
-            #     id: 456
-            #     email: test@example.com
-            #   )
-            # )
-            ```
-        """
-        return self._format_str(indent=0)
-    
-    def _format_str(self, indent: int = 0) -> str:
-        """
-        Format the object as a string with proper indentation.
-        
-        Args:
-            indent: Number of spaces to indent (used for nested objects)
-            
-        Returns:
-            str: Formatted string representation
-        """
-        indent_str = "  " * indent
-        next_indent_str = "  " * (indent + 1)
-        
-        lines = [f"_ResponseObject("]
-        
-        for key, value in self.__dict__.items():
-            formatted_value = self._format_value(value, indent + 1)
-            lines.append(f"{next_indent_str}{key}: {formatted_value}")
-        
-        lines.append(f"{indent_str})")
-        return "\n".join(lines)
-    
-    def _format_value(self, value: Any, indent: int) -> str:
-        """
-        Format a single value with appropriate handling for different types.
-        
-        Args:
-            value: The value to format
-            indent: Indentation level for nested structures
-            
-        Returns:
-            str: Formatted value string
-        """
-        if isinstance(value, _ResponseObject):
-            return value._format_str(indent)
-        elif isinstance(value, list):
-            if not value:
-                return "[]"
-            if len(value) <= 3 and all(not isinstance(v, (_ResponseObject, list, dict)) for v in value):
-                # Short list of simple values - show inline
-                return f"[{', '.join(repr(v) if isinstance(v, str) else str(v) for v in value)}]"
-            else:
-                # Multi-line list
-                indent_str = "  " * indent
-                next_indent_str = "  " * (indent + 1)
-                items = [f"{next_indent_str}{self._format_value(v, indent + 1)}" for v in value]
-                return f"[\n{chr(10).join(items)}\n{indent_str}]"
-        elif isinstance(value, dict):
-            if not value:
-                return "{}"
-            indent_str = "  " * indent
-            next_indent_str = "  " * (indent + 1)
-            items = [f"{next_indent_str}{k}: {self._format_value(v, indent + 1)}" for k, v in value.items()]
-            return f"{{\n{chr(10).join(items)}\n{indent_str}}}"
-        elif isinstance(value, str):
-            return f"'{value}'"
-        elif value is None:
-            return "None"
-        else:
-            return str(value)
-
-
 class _ObjectJSONEncoder(JSONEncoder):
     """
     Custom JSON encoder for serializing objects to JSON.
@@ -948,7 +952,7 @@ class Objectifier:
     """
     
     @staticmethod
-    def from_json_str(json_data: str) -> ResponseData:
+    def from_json_str(json_data: str, root_class: type = _ResponseObject) -> ResponseData:
         """
         Convert JSON string to response object with dot notation access.
         
@@ -965,7 +969,15 @@ class Objectifier:
         Raises:
             json.JSONDecodeError: If the JSON string is invalid
         """
-        return json.loads(json_data, object_hook=lambda d: _ResponseObject(**d))
+        depth = [0]  # Mutable depth counter for nested objects
+        def object_hook(d):
+            try:
+                cls = root_class if depth[0] == 0 else _ResponseObject
+                depth[0] += 1
+                return cls(**d)
+            finally:
+                depth[0] -= 1
+        return json.loads(json_data, object_hook=object_hook)
 
     @staticmethod
     def to_json_str(obj: Any, json_encoder_cls: Optional[type] = None) -> str:
