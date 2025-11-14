@@ -50,7 +50,7 @@ class ReadOnlyResourceBase:
         ```
     """
     _paged: bool = True
-    _response_field_filter = None  # type: Optional[List[str]]
+    _response_field_filter = None  # type: Optional[List[str] | Dict[str, Optional[List[str]]]]
     
     NAME: str  # Must be defined by subclasses
     
@@ -75,7 +75,7 @@ class ReadOnlyResourceBase:
     
     def set_response_fields(self, 
                             response_fields: ResponseFields, 
-                            method:Optional[Literal["GET", "POST", "PUT", "DELETE"]] = None,
+                            method:Optional[Literal["GET", "GET_SINGLE", "GET_LIST", "POST", "PUT", "DELETE"]] = None,
                             use_filter: bool = True) -> None:
         """
         Set the list of fields to include in API responses.
@@ -102,7 +102,7 @@ class ReadOnlyResourceBase:
                                      if field in allowed_response_fields]
     def set_response_field(self, 
                            response_field: str, 
-                           method:Optional[Literal["GET", "POST", "PUT", "DELETE"]] = None,
+                           method:Optional[Literal["GET", "GET_SINGLE", "GET_LIST", "POST", "PUT", "DELETE"]] = None,
                            use_filter: bool = True) -> bool:
         """
         Add a single field to the response fields list.
@@ -138,7 +138,7 @@ class ReadOnlyResourceBase:
             self.response_fields = [response_field]
         return True
     
-    def get_allowed_response_fields(self, method:Optional[Literal["GET", "POST", "PUT", "DELETE"]] = None) -> Optional[List[str]]:
+    def get_allowed_response_fields(self, method:Optional[Literal["GET", "GET_SINGLE", "GET_LIST", "POST", "PUT", "DELETE"]] = None) -> Optional[List[str]]:
         """
         Get the list of allowed response fields for this resource.
         
@@ -214,12 +214,23 @@ class ReadOnlyResourceBase:
         Raises:
             PIXXIOException: If the request fails or response is invalid
         """
-        if self.response_fields:
-            params.update({"responseFields": self.response_fields})
+        # Determine if this is a list or single item request for proper response field filtering
+        is_list_request = endpoint_base == self.endpoint_base
+        method_hint = "GET_LIST" if is_list_request else "GET_SINGLE"
+        
+        # Use method-specific response fields if available
+        response_fields_to_use = self.response_fields
+        if not response_fields_to_use and isinstance(self._response_field_filter, dict):
+            # Auto-select response fields based on request type
+            default_fields = self._response_field_filter.get(method_hint)
+            if default_fields:
+                response_fields_to_use = default_fields
+        
+        if response_fields_to_use:
+            params.update({"responseFields": response_fields_to_use})
         
         # Add default pagination parameters if not provided (only for list requests)
         # Individual item requests (with ID in URL) don't need pagination
-        is_list_request = endpoint_base == self.endpoint_base
         if is_list_request and self._paged:
             if 'page' not in params:
                 params['page'] = 1
