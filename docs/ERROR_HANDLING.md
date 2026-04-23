@@ -236,6 +236,25 @@ except (InternalServerErrorException, ServiceUnavailableException):
 
 ## File Operation Exceptions
 
+## ResponseFields Parameter Mismatches
+
+Some PIXXIO specialized endpoints do not support the `responseFields` query
+parameter even though they return structured data.
+
+To avoid 400 Bad Request failures, the client now automatically bypasses
+`responseFields` on these methods:
+
+- `Directory.get_tree()`
+- `Keyword.download()`
+- `Synonym.get_columns()`
+- `File.download()` convert paths
+- `PortalPage.get()`
+- `PortalUser.get()`
+
+If you set resource-level response fields via `set_response_fields(...)`,
+the setting is still honored on standard GET endpoints and safely ignored on
+the specialized endpoints listed above.
+
 ### Upload Error Handling
 
 ```python

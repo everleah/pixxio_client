@@ -1,5 +1,6 @@
 import json
 import logging
+from contextlib import contextmanager
 from typing import Literal, Optional, Dict, Any, Union, List, IO, TYPE_CHECKING
 
 from types import SimpleNamespace
@@ -192,6 +193,22 @@ class ReadOnlyResourceBase:
         else:
             self.logger = logging.getLogger(self.__class__.__name__)
         self.endpoint_base = f'{self.client.location_base}/{self.NAME}'
+        self._supports_response_fields_for_endpoint = True
+
+    @contextmanager
+    def _without_response_fields(self):
+        """
+        Temporarily disable automatic responseFields injection for GET requests.
+
+        Use this for API endpoints that do not accept the responseFields query
+        parameter.
+        """
+        old_value = self._supports_response_fields_for_endpoint
+        self._supports_response_fields_for_endpoint = False
+        try:
+            yield
+        finally:
+            self._supports_response_fields_for_endpoint = old_value
         
     
     def set_response_fields(self, 
@@ -347,7 +364,7 @@ class ReadOnlyResourceBase:
             if default_fields:
                 response_fields_to_use = default_fields
         
-        if response_fields_to_use:
+        if self._supports_response_fields_for_endpoint and response_fields_to_use:
             params.update({"responseFields": response_fields_to_use})
         
         # Add default pagination parameters if not provided (only for list requests)

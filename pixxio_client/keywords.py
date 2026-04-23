@@ -26,7 +26,8 @@ class Keyword(ResourceBase, ResourceUploadMixin):
     
     def download(self, **params: Any) -> ResponseData:
         """Download keywords as CSV from the /csv endpoint."""
-        return self._get(
-            endpoint_base=f"{self.endpoint_base}/csv", 
-            **params)
+        with self._without_response_fields():
+            return self._get(
+                endpoint_base=f"{self.endpoint_base}/csv",
+                **params)
     

@@ -501,6 +501,25 @@ When implementing new resources:
 
 This ensures the Python client stays synchronized with the official API specification.
 
+## Response Fields Behavior on Specialized GET Endpoints
+
+The client automatically appends `responseFields` for standard list and single-item
+GET endpoints. Some specialized PIXXIO endpoints reject `responseFields` and must
+be called without that query parameter.
+
+The base resource class provides a shared opt-out mechanism that specialized
+methods use internally. This keeps default behavior unchanged for standard CRUD
+GET requests while preventing 400 errors on unsupported endpoints.
+
+Currently protected specialized GET methods:
+
+- `File.download()` (`/files/convert` and `/files/{id}/convert`)
+- `Directory.get_tree()` (`/directories/tree`)
+- `Keyword.download()` (`/keywords/csv`)
+- `Synonym.get_columns()` (`/synonymColumns`)
+- `PortalPage.get()` (`/portals/{id}/pages`)
+- `PortalUser.get()` (`/portals/{id}/users/current`, `/portals/{id}/users/{user_id}`)
+
 ---
 
 For more specific information, see:
