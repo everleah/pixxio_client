@@ -605,15 +605,19 @@ class File(ResourceBase, ResourceUploadMixin, ResourceJobMixin):
             resized = files.download(123, format="JPG", width=800, height=600)
             ```
         """
-        # The /convert endpoint does not support responseFields parameter.
-        with self._without_response_fields():
+        # The /convert endpoint does not support responseFields parameter
+        saved_response_fields = self.response_fields
+        self.response_fields = None
+        try:
             if id is None:
                 return self._get(
-                    endpoint_base=f"{self.endpoint_base}/convert",
+                    endpoint_base=f"{self.endpoint_base}/convert", 
                     **params)
             return self._get(
-                endpoint_base=f"{self.endpoint_base}/{id}/convert",
+                endpoint_base=f"{self.endpoint_base}/{id}/convert", 
                 **params)
+        finally:
+            self.response_fields = saved_response_fields
     
     def upload_and_wait(
         self,

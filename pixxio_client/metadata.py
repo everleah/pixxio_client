@@ -158,14 +158,24 @@ class MetadataValueBuilder:
         """Convert a list of selection options to a name to id mapping dict."""
         index = {}
         for option in selection_options:
-            name = option.get("name", None)
-            id = option.get("id", None)
+            if option is None:
+                continue
+            if isinstance(option, dict):
+                name = option.get("name", None)
+                id = option.get("id", None)
+            else:
+                # _ResponseObject or similar: use attribute access
+                name = getattr(option, "name", None)
+                id = getattr(option, "id", None)
             if name and id is not None:
                 index[name] = id
         return index
 
     def get_id(self, name: str) -> Optional[int]:
-        return self.name_to_field.get(name, None) # type: ignore
+        field = self.name_to_field.get(name, None)
+        if field is None:
+            return None
+        return getattr(field, "id", None)
 
     def add(self, identifier: str | int, value):
         return self.append("add", identifier, value)
