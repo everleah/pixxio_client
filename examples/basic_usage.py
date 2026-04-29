@@ -8,7 +8,7 @@ import tempfile
 import os
 from pixxio_client import Client
 from pixxio_client.files import File
-from pixxio_client.collections import Collection
+from pixxio_client.collections import Collection, CollectionCreateBuilder, CollectionUpdateBuilder
 from pixxio_client.exceptions import PIXXIOException, NotFoundException
 
 # Test environment configuration
@@ -87,14 +87,14 @@ def example_3_collections(client):
     collections = Collection(client)
     
     try:
-        # Create a new collection
+        # Create a new collection using the builder
         print("📂 Creating collection...")
-        collection_data = {
-            'name': f'Python Client Example {int(os.getpid())}',
-            'description': 'Collection created by Python client example'
-        }
-        
-        new_collection = collections.post(json_data=collection_data)
+        new_collection = collections.create(
+            **CollectionCreateBuilder()
+                .name(f'Python Client Example {int(os.getpid())}')
+                .description('Collection created by Python client example')
+                .build()
+        )
         collection_id = getattr(new_collection, 'id')
         print(f"✅ Collection created! ID: {collection_id}")
         
@@ -104,18 +104,19 @@ def example_3_collections(client):
         collection_name = getattr(collection_info, 'name', 'Unknown')
         print(f"✅ Collection retrieved: {collection_name}")
         
-        # Update collection
+        # Update collection using the builder
         print("📝 Updating collection...")
-        update_data = {
-            'description': 'Updated by Python client example'
-        }
-        
-        updated_collection = collections.put(collection_id, json_data=update_data)
+        collections.update(
+            collection_id,
+            **CollectionUpdateBuilder()
+                .description('Updated by Python client example')
+                .build()
+        )
         print(f"✅ Collection updated successfully")
         
         # List all collections
         print("📋 Listing collections...")
-        all_collections = collections.get()
+        all_collections = collections.list()
         print(f"✅ Collection listing retrieved")
         
         return collection_id

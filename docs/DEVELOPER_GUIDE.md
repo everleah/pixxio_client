@@ -159,12 +159,16 @@ class File(ResourceBase, ResourceUploadMixin, ResourceJobMixin):
 **Example Combinations:**
 ```python
 # Read-only resource
-class User(ReadOnlyResourceBase):
-    NAME = "users"
+class DownloadFormat(ReadOnlyResourceBase):
+    NAME = "downloadFormats"
 
 # Full CRUD resource
 class Collection(ResourceBase):
     NAME = "collections"
+
+# User with full CRUD
+class User(ResourceBase):
+    NAME = "users"
 
 # File resource with uploads and job tracking
 class File(ResourceBase, ResourceUploadMixin, ResourceJobMixin):
@@ -244,34 +248,122 @@ from typing import Optional, Any
 from ._base import ResourceBase  # Add mixins as needed
 from .pixxio_types import PIXXIOId, ResponseData
 
+
+class NewResourceCreateBuilder:
+    """Builder for NewResourcePost form fields."""
+
+    def __init__(self):
+        self._fields = {}
+
+    def name(self, value: str):
+        self._fields["name"] = value
+        return self
+
+    # Add one method per field documented in openapi.json
+    def some_field(self, value: str):
+        self._fields["someField"] = value
+        return self
+
+    def set(self, key, value):
+        """Fallback for fields not yet covered by explicit methods."""
+        self._fields[key] = value
+        return self
+
+    def build(self):
+        return dict(self._fields)
+
+
+class NewResourceUpdateBuilder:
+    """Builder for NewResourcePut form fields."""
+
+    def __init__(self):
+        self._fields = {}
+
+    def name(self, value: str):
+        self._fields["name"] = value
+        return self
+
+    def set(self, key, value):
+        self._fields[key] = value
+        return self
+
+    def build(self):
+        return dict(self._fields)
+
+
+class NewResourceDeleteBuilder:
+    """Builder for NewResourcesDelete query fields."""
+
+    def __init__(self):
+        self._fields = {}
+
+    def id(self, value: PIXXIOId):
+        self._fields["ids"] = [value]
+        return self
+
+    def ids(self, value: list):
+        self._fields["ids"] = value
+        return self
+
+    def set(self, key, value):
+        self._fields[key] = value
+        return self
+
+    def build(self):
+        if "ids" not in self._fields:
+            raise ValueError("'ids' is required for NewResourcesDelete.")
+        return dict(self._fields)
+
+
 class NewResource(ResourceBase):
     """
     Resource for managing [description].
-    
-    Provides [list of capabilities].
-    
-    Example:
-        ```python
+
+    API endpoint: ``/api/v1/newresources``
+
+    Example::
+
+        from pixxio_client import Client
+        from pixxio_client.newresource import NewResource, NewResourceCreateBuilder
+
         client = Client.create_client("api-key", "host.com")
         resource = NewResource(client)
-        
-        # Basic operations
-        all_items = resource.get()
-        item = resource.get(123)
-        ```
+
+        # Convenience methods
+        all_items = resource.list()
+        new_item = resource.create(
+            **NewResourceCreateBuilder().name("My Item").build()
+        )
+        resource.delete(id=new_item.id)
     """
-    
+
     NAME = "newresources"  # Must match API endpoint
-    
+
+    def list(self, **params: Any) -> ResponseData:
+        return self.get(**params)
+
+    def create(self, **fields: Any) -> ResponseData:
+        return self.post(form_data=fields)
+
+    def update(self, id: PIXXIOId, **fields: Any) -> ResponseData:
+        return self.put(id=id, form_data=fields)
+
+    def delete(self, id: Optional[PIXXIOId] = None, ids=None, **params: Any) -> ResponseData:
+        if id is not None and ids is None:
+            ids = [id]
+        if ids is None:
+            raise ValueError("'id' or 'ids' is required.")
+        return self._delete(ids=ids, **params)
+
     # Override methods only when API differs from REST standard
-    def special_operation(self, id: PIXXIOId, **params: Any) -> ResponseData:
+    def custom_operation(self, id: PIXXIOId, **params: Any) -> ResponseData:
         """
         Custom operation description.
-        
+
         Args:
             id: Resource ID
             **params: Additional parameters
-            
+
         Returns:
             ResponseData: Operation result
         """

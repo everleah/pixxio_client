@@ -103,9 +103,11 @@ Provides async job tracking for long-running operations.
 
 ### File
 
-Complete file management with upload, download, and conversion.
+Complete file management with upload, download, update, delete, and conversion.
 
 ```python
+from pixxio_client.files import File, FileUpdateBuilder, FileDeleteBuilder
+
 files = File(client)
 
 # Upload operations
@@ -116,15 +118,115 @@ result = files.upload_and_wait("/path/to/video.mp4", timeout=600)
 converted = files.download(123, format="PDF", size="A4")
 resized = files.download(123, format="JPG", width=800, height=600)
 
+# Update multiple files at once using the builder
+files.update(
+    **FileUpdateBuilder()
+        .ids([100, 101, 102])
+        .subject("Campaign Assets")
+        .keywords_to_add(["campaign", "2024"])
+        .build()
+)
+
+# Delete by IDs or filter
+files.delete(
+    **FileDeleteBuilder()
+        .ids([100, 101])
+        .build()
+)
+
 # Async operations
 result = await files.async_upload_and_wait("/path/to/file.jpg")
 ```
 
 **Mixins:** ResourceBase, ResourceUploadMixin, ResourceJobMixin
 
+### Builder Classes
+
+All CRUD resources expose typed builder classes for creating and updating records.
+Builders provide IDE autocompletion and prevent typos in field names.
+
+```python
+from pixxio_client.collections import Collection, CollectionCreateBuilder, CollectionUpdateBuilder
+from pixxio_client.users import User, UserCreateBuilder, UserUpdateBuilder
+from pixxio_client.uploadlinks import UploadLink, UploadLinkCreateBuilder
+
+# --- Collections ---
+collections = Collection(client)
+
+new_col = collections.create(
+    **CollectionCreateBuilder()
+        .name("Q1 Campaign")
+        .description("Assets for the Q1 campaign")
+        .build()
+)
+
+collections.update(
+    new_col.id,
+    **CollectionUpdateBuilder()
+        .description("Updated description")
+        .build()
+)
+
+collections.delete(id=new_col.id)
+
+# --- Users ---
+users = User(client)
+
+new_user = users.create(
+    **UserCreateBuilder()
+        .first_name("Jane")
+        .last_name("Doe")
+        .email("jane.doe@example.com")
+        .user_name("jane.doe")
+        .password("secure-password")
+        .is_active(True)
+        .build()
+)
+
+users.update(
+    new_user.id,
+    **UserUpdateBuilder()
+        .first_name("Jane-Updated")
+        .permission_group_ids_to_add([5])
+        .build()
+)
+
+# --- Upload Links ---
+links = UploadLink(client)
+
+new_link = links.create(
+    **UploadLinkCreateBuilder()
+        .name("Agency Upload")
+        .directory_id(10)
+        .validity_period(14)
+        .keywords_to_add(["agency", "2024"])
+        .build()
+)
+```
+
+### Convenience Methods
+
+All CRUD resources also provide convenience wrappers that accept keyword
+arguments directly — useful for quick calls without a builder:
+
+```python
+# list() is an alias for get() with paging defaults
+all_collections = collections.list()
+
+# create() wraps post(form_data=...)
+new_collection = collections.create(name="My Collection", description="...")
+
+# update() wraps put(id, form_data=...)
+collections.update(42, description="New description")
+
+# delete() with a single id
+collections.delete(id=42)
+```
+
 ### Other Resources
 
-All resource classes follow the same pattern:
+All resource classes follow the same pattern. Low-level base methods remain
+available for advanced use:
 
 ```python
 from pixxio_client.collections import Collection
@@ -132,10 +234,10 @@ from pixxio_client.users import User
 from pixxio_client.keywords import Keyword
 
 collections = Collection(client)
-users = User(client)  
+users = User(client)
 keywords = Keyword(client)
 
-# Standard CRUD operations available on all resources
+# Low-level base methods (still fully supported)
 items = resource.get()
 item = resource.get(123)
 new_item = resource.post(json_data={...})
