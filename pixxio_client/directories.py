@@ -1,4 +1,147 @@
+from typing import Any
+
 from ._base import ResourceBase
+from .pixxio_types import PIXXIOId, ResponseData
+
+
+class DirectoryGetBuilder:
+    """
+    Builder for directory list/query parameters (DirectoriesGet).
+    """
+
+    def __init__(self):
+        self._params = {}
+
+    def name(self, value: str):
+        self._params["name"] = value
+        return self
+
+    def page(self, value: int):
+        self._params["page"] = value
+        return self
+
+    def page_size(self, value: int):
+        self._params["pageSize"] = value
+        return self
+
+    def response_fields(self, value):
+        self._params["responseFields"] = value
+        return self
+
+    def show_subversions(self, value: bool):
+        self._params["showSubVersions"] = value
+        return self
+
+    def sort_by(self, value: str):
+        self._params["sortBy"] = value
+        return self
+
+    def sort_direction(self, value: str):
+        self._params["sortDirection"] = value
+        return self
+
+    def set(self, key, value):
+        self._params[key] = value
+        return self
+
+    def build(self):
+        return dict(self._params)
+
+
+class DirectoryCreateBuilder:
+    """
+    Builder for directory creation form fields (DirectoryPost).
+    """
+
+    def __init__(self):
+        self._fields = {}
+
+    def name(self, value: str):
+        self._fields["name"] = value
+        return self
+
+    def parent_id(self, value: int):
+        self._fields["parentID"] = value
+        return self
+
+    def set(self, key, value):
+        self._fields[key] = value
+        return self
+
+    def build(self):
+        return dict(self._fields)
+
+
+class DirectoryUpdateBuilder:
+    """
+    Builder for directory update form fields (DirectoryPut).
+    """
+
+    def __init__(self):
+        self._fields = {}
+
+    def name(self, value: str):
+        self._fields["name"] = value
+        return self
+
+    def parent_id(self, value: int):
+        self._fields["parentID"] = value
+        return self
+
+    def set(self, key, value):
+        self._fields[key] = value
+        return self
+
+    def build(self):
+        return dict(self._fields)
+
+
+class DirectoryTreeBuilder:
+    """
+    Builder for directory tree query parameters (DirectoriesTree).
+    """
+
+    def __init__(self):
+        self._params = {}
+
+    def child_id(self, value: int):
+        self._params["childID"] = value
+        return self
+
+    def parent_id(self, value: int):
+        self._params["parentID"] = value
+        return self
+
+    def response_fields(self, value):
+        self._params["responseFields"] = value
+        return self
+
+    def show_children(self, value: bool):
+        self._params["showChildren"] = value
+        return self
+
+    def show_parents(self, value: bool):
+        self._params["showParents"] = value
+        return self
+
+    def show_subversions(self, value: bool):
+        self._params["showSubVersions"] = value
+        return self
+
+    def sort_by(self, value: str):
+        self._params["sortBy"] = value
+        return self
+
+    def sort_direction(self, value: str):
+        self._params["sortDirection"] = value
+        return self
+
+    def set(self, key, value):
+        self._params[key] = value
+        return self
+
+    def build(self):
+        return dict(self._params)
 
 
 class Directory(ResourceBase):
@@ -12,11 +155,11 @@ class Directory(ResourceBase):
 
     API endpoint: ``/api/v1/directories``
 
-    Available operations (inherited):
+    Available operations:
         - ``get()``              – list all directories
         - ``get(id)``            – retrieve a specific directory by ID
-        - ``post(json_data)``    – create a new directory
-        - ``put(id, json_data)`` – update a directory (e.g. rename)
+        - ``post(form_data=...)`` – create a new directory
+        - ``put(id, form_data=...)`` – update a directory (e.g. rename)
         - ``delete(id=id)``      – delete a directory
 
     Example::
@@ -34,7 +177,7 @@ class Directory(ResourceBase):
         tree = dirs.get_tree()
 
         # Create a sub-folder
-        new_dir = dirs.post(json_data={"name": "Projects", "parentId": 1})
+        new_dir = dirs.create(name="Projects", parentID=1)
 
     Response field filtering::
 
@@ -47,6 +190,33 @@ class Directory(ResourceBase):
     """
 
     NAME = "directories"
+
+    def list(self, **params: Any) -> ResponseData:
+        """
+        Convenience alias for list-style directory GET requests.
+        """
+        return self.get(**params)
+
+    def create(self, **fields: Any) -> ResponseData:
+        """
+        Convenience helper for DirectoryPost using multipart form fields.
+        """
+        return self.post(form_data=fields)
+
+    def update(self, id: PIXXIOId, **fields: Any) -> ResponseData:
+        """
+        Convenience helper for DirectoryPut using multipart form fields.
+        """
+        return self.put(id=id, form_data=fields)
+
+    def delete(self, id: PIXXIOId, **params: Any) -> ResponseData:
+        """
+        Delete a directory by ID.
+
+        OpenAPI defines delete on ``/directories/{directory_id}``, so this
+        method calls the path-based endpoint directly.
+        """
+        return self._delete(endpoint_base=f"{self.endpoint_base}/{id}", **params)
 
     def get_tree(self, **params):
         """
