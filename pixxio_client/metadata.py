@@ -25,7 +25,7 @@ class StandardMetadata(ResourceBase):
        
 
 class MetadataValueBuilder:
-    """Build values to set via files post an put methods.
+    """Build values to set via files post and put methods.
     works with the results of CustomMetadata and StandardMetadata get methods."""
     
     def __init__(self, metadata_fields_info: List[SimpleNamespace]):
@@ -43,7 +43,7 @@ class MetadataValueBuilder:
         if not field:
             raise ValueError(f"Metadata field with id '{field_id}' not found.")
         # Apply any necessary transformations to the value
-        # possible editTypes: date, map, focalpoint, orientation, multiselection, language, none, selection, number, text
+        # possible editTypes: date, map, focalpoint, orientation, multiselection, language, none, selection, number, text, boolean
         if field.editType == "date":
             if isinstance(value, date) or isinstance(value, datetime):
                 value = value.isoformat()
