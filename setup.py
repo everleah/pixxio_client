@@ -3,7 +3,7 @@
 from setuptools import setup, find_packages
 
 setup(name='pixxio_client',
-      version='0.3',
+      version='0.4.0',
       description='PIXX!O API Python Client',
       author='Claudius Hansch',
       author_email='claudius.hansch@hoerl-im.de',
