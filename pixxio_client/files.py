@@ -496,6 +496,51 @@ class FileUploadBuilder:
                 result[key] = json.dumps(result[key])
         return result
 
+class FileDeleteBuilder:
+    """
+    Builder for PIXXIO file delete (filesDelete) query fields.
+
+    Enforces mutual exclusion for ids/filter (last one wins).
+    Usage:
+        delete_params = (
+            FileDeleteBuilder()
+                .ids([123, 456])
+                .show_subversions(True)
+                .build()
+        )
+        files.delete(**delete_params)
+    """
+
+    def __init__(self):
+        self._fields = {}
+
+    def ids(self, value):
+        self._fields["ids"] = value
+        if "filter" in self._fields:
+            del self._fields["filter"]
+        return self
+
+    def filter(self, value):
+        self._fields["filter"] = value
+        if "ids" in self._fields:
+            del self._fields["ids"]
+        return self
+
+    def show_subversions(self, value: bool):
+        self._fields["showSubversions"] = value
+        return self
+
+    def showSubversions(self, value: bool):
+        self._fields["showSubversions"] = value
+        return self
+
+    def set(self, key, value):
+        self._fields[key] = value
+        return self
+
+    def build(self):
+        return dict(self._fields)
+
 class FileResponseObject(_ResponseObject):
     pass
 
@@ -757,6 +802,70 @@ class File(ResourceBase, ResourceUploadMixin, ResourceJobMixin):
                 form_data[key] = json.dumps(form_data[key])
         # Use PUT with multipart/form-data at the collection endpoint
         return self._put(endpoint_base=self.endpoint_base, form_data=form_data)
+
+    def put(
+        self,
+        id: PIXXIOId,
+        json_data=None,
+        form_data=None,
+        **params: Any,
+    ) -> ResponseData:
+        """
+        Compatibility wrapper for file updates by a single file ID.
+
+        The API exposes collection-level filesPut (PUT /files) with ids/filter,
+        not PUT /files/{id}. This maps ResourceBase.put-style calls to filesPut.
+        """
+        if json_data is not None and form_data is not None:
+            raise ValueError("Use either 'json_data' or 'form_data', not both.")
+
+        fields = {}
+        if json_data is not None:
+            fields.update(json_data)
+        if form_data is not None:
+            fields.update(form_data)
+        fields.update(params)
+
+        return self.update(ids=[id], **fields)
+
+    def delete(
+        self,
+        ids=None,
+        filter=None,
+        show_subversions: Optional[bool] = None,
+        **params: Any,
+    ) -> ResponseData:
+        """
+        Delete files using the filesDelete endpoint.
+
+        Exactly one of ``ids`` or ``filter`` must be provided.
+
+        Args:
+            ids: List of file IDs to delete
+            filter: Filter object selecting files to delete
+            show_subversions: Maps to API parameter ``showSubversions``
+            **params: Additional query parameters
+
+        Returns:
+            ResponseData: Deletion result (e.g. deletedFileIDs/notDeletedFileIDs)
+        """
+        # Enforce same contract as filesPut: exactly one selector is required.
+        if (ids is None and filter is None) or (ids is not None and filter is not None):
+            raise ValueError("Exactly one of 'ids' or 'filter' must be provided.")
+
+        delete_params = dict(params)
+        if ids is not None:
+            delete_params["ids"] = ids
+        if filter is not None:
+            delete_params["filter"] = filter
+
+        # Support both pythonic snake_case and raw API camelCase.
+        if show_subversions is not None:
+            if "showSubversions" in delete_params:
+                raise ValueError("Use either 'show_subversions' or 'showSubversions', not both.")
+            delete_params["showSubversions"] = show_subversions
+
+        return self._delete(endpoint_base=self.endpoint_base, **delete_params)
         
     
     
