@@ -651,18 +651,14 @@ class File(ResourceBase, ResourceUploadMixin, ResourceJobMixin):
             ```
         """
         # The /convert endpoint does not support responseFields parameter
-        saved_response_fields = self.response_fields
-        self.response_fields = None
-        try:
+        with self._without_response_fields():
             if id is None:
                 return self._get(
-                    endpoint_base=f"{self.endpoint_base}/convert", 
+                    endpoint_base=f"{self.endpoint_base}/convert",
                     **params)
             return self._get(
-                endpoint_base=f"{self.endpoint_base}/{id}/convert", 
+                endpoint_base=f"{self.endpoint_base}/{id}/convert",
                 **params)
-        finally:
-            self.response_fields = saved_response_fields
     
     def upload_and_wait(
         self,
