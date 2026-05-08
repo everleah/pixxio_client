@@ -369,17 +369,41 @@ class ReadOnlyResourceBase:
         
         # Add default pagination parameters if not provided (only for list requests)
         # Individual item requests (with ID in URL) don't need pagination
+        auto_added_page = False
+        auto_added_page_size = False
         if is_list_request and self._paged:
             if 'page' not in params:
                 params['page'] = 1
+                auto_added_page = True
             if 'pageSize' not in params:
                 params['pageSize'] = 50  # Default page size
+                auto_added_page_size = True
             
         try:
             response = self.client.session.get(
                 endpoint_base,
                 params=params
             )
+
+            # Some endpoints do not support pagination query params.
+            # If paging params were only auto-added, retry once without them.
+            if (
+                response is not None
+                and not response.ok
+                and is_list_request
+                and (auto_added_page or auto_added_page_size)
+            ):
+                response_text = (response.text or "").lower()
+                if "invalid parameter specified: page" in response_text or "invalid parameter specified: pagesize" in response_text:
+                    retry_params = dict(params)
+                    if auto_added_page:
+                        retry_params.pop('page', None)
+                    if auto_added_page_size:
+                        retry_params.pop('pageSize', None)
+                    response = self.client.session.get(
+                        endpoint_base,
+                        params=retry_params
+                    )
         except Exception as ex:
             raise get_response_exception(ex)
         return self._parseResponse(response, self._get_list_response_cls if is_list_request else self._get_single_response_cls)

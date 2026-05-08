@@ -35,4 +35,5 @@ class DownloadFormat(ReadOnlyResourceBase):
         result = formats.get()  # only returns the specified fields
     """
 
+    _paged = False
     NAME = "downloadFormats"
