@@ -38,6 +38,7 @@ class Portal(ReadOnlyResourceBase):
         sub-endpoints do not support the parameter.
     """
 
+    _paged = False
     NAME = "portals"
 
 

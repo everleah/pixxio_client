@@ -34,4 +34,5 @@ class FileState(ReadOnlyResourceBase):
         result = states.get()  # only returns the specified fields
     """
 
+    _paged = False
     NAME = "fileStates"

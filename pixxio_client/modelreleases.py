@@ -174,6 +174,7 @@ class ModelRelease(ResourceBase):
         result = releases.get()  # only returns the specified fields
     """
 
+    _paged = False
     NAME = "modelReleases"
 
     def list(self, **params: Any) -> ResponseData:

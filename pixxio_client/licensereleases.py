@@ -120,6 +120,7 @@ class LicenseRelease(ResourceBase):
         result = releases.get()  # only returns the specified fields
     """
 
+    _paged = False
     NAME = "licenseReleases"
 
     def list(self, **params: Any) -> ResponseData:
