@@ -1,0 +1,48 @@
+{
+  "timestamp": "2026-01-28T10:07:48.844041",
+  "signature_verified": true,
+  "headers": {
+    "host": "pixxiostub.him-tools.de",
+    "user-agent": "Go-http-client/2.0",
+    "transfer-encoding": "chunked",
+    "accept-encoding": "gzip",
+    "content-type": "application/json",
+    "x-forwarded-for": "3.78.21.178",
+    "x-forwarded-host": "pixxiostub.him-tools.de",
+    "x-forwarded-port": "443",
+    "x-forwarded-proto": "https",
+    "x-forwarded-server": "63481d196b1e",
+    "x-hub-signature-256": "f3c90075111d7b5c91414183bca4922c967c98abe5a23c04fcddf9e23607659f",
+    "x-real-ip": "3.78.21.178"
+  },
+  "payload": {
+    "events": [
+      {
+        "id": 589231530,
+        "eventKey": "fileModifiedKeywordsDeleted",
+        "action": "updated",
+        "name": "updateFile",
+        "createDate": "2026-01-28 11:07:48",
+        "modifyDate": "2026-01-28 11:07:48",
+        "applicationKey": "iM91iRu6kb86Y6IaWMsK9T9q7",
+        "applicationName": "pixx.io",
+        "userType": "user",
+        "userID": 1041188852,
+        "userName": "admin_hoerl",
+        "userDescriptiveName": "Administrator hoerl",
+        "resourceType": "file",
+        "resourceID": 1115706187,
+        "resourceName": "testbild_hoerl_DAM_blume_01.jpg",
+        "resourceOwnerUserType": "user",
+        "resourceOwnerUserID": 1041188852,
+        "resourceOwnerUserName": "admin_hoerl",
+        "data": {
+          "eventKey": "fileModifiedKeywordsDeleted",
+          "keywordsDeleted": [
+            "Fotograf 1"
+          ]
+        }
+      }
+    ]
+  }
+}

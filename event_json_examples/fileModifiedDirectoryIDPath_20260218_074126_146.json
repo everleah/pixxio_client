@@ -1,0 +1,103 @@
+{
+  "timestamp": "2026-02-18T07:41:26.146747",
+  "signature_verified": true,
+  "headers": {
+    "host": "pixxiostub.him-tools.de",
+    "user-agent": "Go-http-client/2.0",
+    "transfer-encoding": "chunked",
+    "accept-encoding": "gzip",
+    "content-type": "application/json",
+    "x-forwarded-for": "3.78.21.178",
+    "x-forwarded-host": "pixxiostub.him-tools.de",
+    "x-forwarded-port": "443",
+    "x-forwarded-proto": "https",
+    "x-forwarded-server": "63481d196b1e",
+    "x-hub-signature-256": "f0e0b787202c726fa44e24754063276f393ec596a63e3a1e058b36418d0181eb",
+    "x-real-ip": "3.78.21.178"
+  },
+  "payload": {
+    "events": [
+      {
+        "id": 495590194,
+        "eventKey": "fileModifiedDirectoryIDPath",
+        "action": "updated",
+        "name": "updateFile",
+        "createDate": "2026-02-18 08:41:25",
+        "modifyDate": "2026-02-18 08:41:25",
+        "applicationKey": "",
+        "applicationName": "",
+        "userType": "user",
+        "userID": 1041188852,
+        "userName": "admin_hoerl",
+        "userDescriptiveName": "Administrator hoerl",
+        "resourceType": "file",
+        "resourceID": 1306728332,
+        "resourceName": "christmas-decorations-1816478_1920.jpg",
+        "resourceOwnerUserType": "user",
+        "resourceOwnerUserID": 1041188852,
+        "resourceOwnerUserName": "admin_hoerl",
+        "data": {
+          "eventKey": "fileModifiedDirectoryIDPath",
+          "oldDirectoryIDPath": "/2/1955829220/",
+          "oldDirectoryPath": "/home/hoerl_Administrator_1041188852",
+          "newDirectoryIDPath": "/1198073756/",
+          "newDirectoryPath": "/Marketingassets"
+        }
+      },
+      {
+        "id": 1982345973,
+        "eventKey": "fileModifiedDirectoryIDPath",
+        "action": "updated",
+        "name": "updateFile",
+        "createDate": "2026-02-18 08:41:25",
+        "modifyDate": "2026-02-18 08:41:25",
+        "applicationKey": "",
+        "applicationName": "",
+        "userType": "user",
+        "userID": 1041188852,
+        "userName": "admin_hoerl",
+        "userDescriptiveName": "Administrator hoerl",
+        "resourceType": "file",
+        "resourceID": 1366835307,
+        "resourceName": "christmas-2947257_1920.jpg",
+        "resourceOwnerUserType": "user",
+        "resourceOwnerUserID": 1041188852,
+        "resourceOwnerUserName": "admin_hoerl",
+        "data": {
+          "eventKey": "fileModifiedDirectoryIDPath",
+          "oldDirectoryIDPath": "/2/1955829220/",
+          "oldDirectoryPath": "/home/hoerl_Administrator_1041188852",
+          "newDirectoryIDPath": "/1198073756/",
+          "newDirectoryPath": "/Marketingassets"
+        }
+      },
+      {
+        "id": 1023193646,
+        "eventKey": "fileModifiedDirectoryIDPath",
+        "action": "updated",
+        "name": "updateFile",
+        "createDate": "2026-02-18 08:41:26",
+        "modifyDate": "2026-02-18 08:41:26",
+        "applicationKey": "",
+        "applicationName": "",
+        "userType": "user",
+        "userID": 1041188852,
+        "userName": "admin_hoerl",
+        "userDescriptiveName": "Administrator hoerl",
+        "resourceType": "file",
+        "resourceID": 1820701219,
+        "resourceName": "christmas-2947257_1920.jpg",
+        "resourceOwnerUserType": "user",
+        "resourceOwnerUserID": 1041188852,
+        "resourceOwnerUserName": "admin_hoerl",
+        "data": {
+          "eventKey": "fileModifiedDirectoryIDPath",
+          "oldDirectoryIDPath": "/2/1955829220/",
+          "oldDirectoryPath": "/home/hoerl_Administrator_1041188852",
+          "newDirectoryIDPath": "/1198073756/",
+          "newDirectoryPath": "/Marketingassets"
+        }
+      }
+    ]
+  }
+}

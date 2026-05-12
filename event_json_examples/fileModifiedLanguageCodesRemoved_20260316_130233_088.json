@@ -1,0 +1,50 @@
+{
+  "timestamp": "2026-03-16T13:02:33.088875",
+  "signature_verified": true,
+  "headers": {
+    "host": "pixxiostub.him-tools.de",
+    "user-agent": "Go-http-client/2.0",
+    "transfer-encoding": "chunked",
+    "accept-encoding": "gzip",
+    "content-type": "application/json",
+    "x-forwarded-for": "3.78.21.178",
+    "x-forwarded-host": "pixxiostub.him-tools.de",
+    "x-forwarded-port": "443",
+    "x-forwarded-proto": "https",
+    "x-forwarded-server": "63481d196b1e",
+    "x-hub-signature-256": "b1caf7ca7ed0c8082c434714f6faff27427c535ecca8ca033825a44209f04baa",
+    "x-real-ip": "3.78.21.178"
+  },
+  "payload": {
+    "events": [
+      {
+        "id": 108944729,
+        "eventKey": "fileModifiedLanguageCodesRemoved",
+        "action": "updated",
+        "name": "updateFile",
+        "createDate": "2026-03-16 14:02:32",
+        "modifyDate": "2026-03-16 14:02:32",
+        "applicationKey": "iM91iRu6kb86Y6IaWMsK9T9q7",
+        "applicationName": "pixx.io",
+        "userType": "user",
+        "userID": 1041188852,
+        "userName": "admin_hoerl",
+        "userDescriptiveName": "Administrator hoerl",
+        "resourceType": "file",
+        "resourceID": 1240943019,
+        "resourceName": "helgoland-2099621_1280.jpg",
+        "resourceOwnerUserType": "user",
+        "resourceOwnerUserID": 1041188852,
+        "resourceOwnerUserName": "admin_hoerl",
+        "data": {
+          "languageCodesRemoved": [
+            "fr-be",
+            "it",
+            "it-ch",
+            "de"
+          ]
+        }
+      }
+    ]
+  }
+}

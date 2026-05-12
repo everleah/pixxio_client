@@ -1,0 +1,48 @@
+{
+  "timestamp": "2026-01-28T08:25:26.952309",
+  "signature_verified": true,
+  "headers": {
+    "host": "pixxiostub.him-tools.de",
+    "user-agent": "Go-http-client/2.0",
+    "transfer-encoding": "chunked",
+    "accept-encoding": "gzip",
+    "content-type": "application/json",
+    "x-forwarded-for": "3.78.21.178",
+    "x-forwarded-host": "pixxiostub.him-tools.de",
+    "x-forwarded-port": "443",
+    "x-forwarded-proto": "https",
+    "x-forwarded-server": "63481d196b1e",
+    "x-hub-signature-256": "d049f782a9dfe4d7ac7eb08c30894e85b9b2c054534290015018e6f47107b8d7",
+    "x-real-ip": "3.78.21.178"
+  },
+  "payload": {
+    "events": [
+      {
+        "id": 814521929,
+        "eventKey": "fileModifiedMarkedUserIDsAdded",
+        "action": "updated",
+        "name": "updateUser",
+        "createDate": "2026-01-28 09:25:26",
+        "modifyDate": "2026-01-28 09:25:26",
+        "applicationKey": "iM91iRu6kb86Y6IaWMsK9T9q7",
+        "applicationName": "pixx.io",
+        "userType": "user",
+        "userID": 1041188852,
+        "userName": "admin_hoerl",
+        "userDescriptiveName": "Administrator hoerl",
+        "resourceType": "file",
+        "resourceID": 1314814672,
+        "resourceName": "tree-6835828_1920.jpg",
+        "resourceOwnerUserType": "user",
+        "resourceOwnerUserID": 1041188852,
+        "resourceOwnerUserName": "admin_hoerl",
+        "data": {
+          "eventKey": "fileModifiedMarkedUserIDsAdded",
+          "markedUserIDsAdded": [
+            1041188852
+          ]
+        }
+      }
+    ]
+  }
+}
