@@ -4,3 +4,4 @@ pytz
 requests
 requests-toolbelt
 wheel
+pywin32

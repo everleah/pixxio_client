@@ -160,6 +160,7 @@ test_*.py
 test_*.sh
 temp/
 tmp/
+examples/data/
 
 # Build artifacts from build_wheel.bat
 *.whl
