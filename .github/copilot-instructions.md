@@ -2,6 +2,6 @@
 
 This file is intentionally minimal.
 
-Project-wide AI assistant instructions are maintained in the root [Agents.md](../Agents.md).
+Project-wide AI assistant instructions are maintained in the root [AGENTS.md](../AGENTS.md).
 
-Use [Agents.md](../Agents.md) as the single source of truth for coding standards, workflow, and documentation rules.
+Use [AGENTS.md](../AGENTS.md) as the single source of truth for coding standards, workflow, and documentation rules.

@@ -1,4 +1,4 @@
-# PIXXIO API Python Client - Agents.md (Project Root)
+# PIXXIO API Python Client - AGENTS.md (Project Root)
 
 ## Scope
 - Python client for PIXXIO REST API.
@@ -122,4 +122,22 @@ When the user requests a durable behavior change, record it here or in the relev
 
 ## Child DOX Index
 
-This project is not yet indexed. Before continuing you must scan the project, build the DOX tree and replace this message with the actual index. Go deep and scan files recursively to properly evaluate complexity and create nested DOX files where needed.
+- `pixxio_client/AGENTS.md`
+  - Scope: Python client source package and resource implementations.
+- `docs/AGENTS.md`
+  - Scope: Top-level project documentation.
+- `docs/webhook/AGENTS.md`
+  - Scope: Webhook parser documentation and usage guides.
+- `tests/AGENTS.md`
+  - Scope: Test suite under `tests/`.
+- `examples/AGENTS.md`
+  - Scope: Executable example scripts.
+- `event_json_examples/AGENTS.md`
+  - Scope: Webhook payload JSON fixtures.
+- `webhook_stub/AGENTS.md`
+  - Scope: Local webhook receiver stub application and ops docs.
+
+Root-owned paths without child DOX files:
+- Repository root scripts and metadata files (for example `setup.py`, `README.md`, `requirements.txt`).
+- `.github/copilot-instructions.md` and workspace settings under `.vscode/`.
+- Build artifacts and package metadata folders remain non-authoritative (`build/`, `dist/`, `pixxio_client.egg-info/`).
