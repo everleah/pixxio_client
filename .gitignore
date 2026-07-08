@@ -132,11 +132,22 @@ dmypy.json
 .pyre/
 
 # IDE and Editor files
-.vscode/
 .idea/
 *.swp
 *.swo
 *~
+
+# Ignoriere den gesamten .vscode-Ordner standardmäßig
+.vscode/*
+
+# Erlaube explizit nur die Dateien, die das Team teilen soll
+!.vscode/settings.json
+!.vscode/extensions.json
+!.vscode/launch.json
+!.vscode/tasks.json
+
+# Ignoriere persönliche oder vom System generierte Zusatzdateien
+.vscode/tags
 
 # OS generated files
 .DS_Store
