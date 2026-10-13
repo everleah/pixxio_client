@@ -108,6 +108,7 @@ result = files.upload_and_wait(
 
 | Document | Description |
 |----------|-------------|
+| **[Documentation Index](docs/README.md)** | Index of all reference, guide, testing and webhook documentation |
 | **[API Reference](docs/API_REFERENCE.md)** | Complete API documentation with examples |
 | **[Developer Guide](docs/DEVELOPER_GUIDE.md)** | Architecture, patterns, and contribution guidelines |
 | **[Test Environment](docs/TEST_ENVIRONMENT.md)** | Live test environment setup and integration tests |
@@ -464,7 +465,7 @@ build_wheel.bat
 upload_wheel_to_forgejo_pypi.bat
 
 # Mirror the current branch to the claudiapps remote
-push_claudiapps.bat
+git push claudiapps HEAD:main
 ```
 
 **Type Checking:**

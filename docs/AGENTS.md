@@ -10,6 +10,7 @@
 - Keep docs consistent with current client behavior and openapi.json.
 - Document only supported behavior already present in code or API contracts.
 - When behavior changes, update affected docs in the same change set.
+- `README.md` is this folder's index; update it whenever a document is added, renamed or removed.
 
 ## Work Guidance
 - Prefer concise, task-oriented sections with concrete examples.

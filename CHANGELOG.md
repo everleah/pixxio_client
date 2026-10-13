@@ -2,6 +2,61 @@
 
 All notable changes to this project will be documented in this file.
 
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
+and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+> **Maintenance note:** this log was not kept current between `0.1` and `0.3`. The
+> `0.4.0`–`0.4.2` and `Unreleased` sections were reconstructed from git history in
+> October 2026; the `0.1` and `0.2` sections are retrospective summaries because no
+> per-release record was ever written for them.
+
+## [Unreleased]
+
+### Added
+- Real-world InDesign examples: `examples/analyze_indd_links_com.py`, `apply_pixxio_labels_to_indd.py`, `build_pixxio_image_mapping_csv.py`, `download_collection_assets.py` and `upload_changed_indd_files.py`.
+- Webhook payload fixtures in `event_json_examples/` covering file, direct link, metadata, keyword, language, file state, collection, external share, marked-user and license events.
+- `AGENTS.md` documentation contracts for the repository root and each major folder.
+- `.vscode/settings.json` workspace settings and `diagnose_failing_files.py` helper.
+
+### Changed
+- Rewrote `README.md` against the current API surface: all 27 resource classes, payload builders, webhooks, and complete documentation/example/test indexes.
+- Documented the Python 3.10+ requirement (the `metadata` module uses PEP 604 union syntax).
+- Added `pywin32` to `requirements.txt`.
+
+### Removed
+- Removed `push_claudiapps.bat` from version control; it is now covered by the `push_*.bat` entry in `.gitignore`.
+- Trimmed `.github/copilot-instructions.md` down to a pointer at the root `AGENTS.md`.
+
+## [0.4.2] - 2026-05-08
+
+### Fixed
+- List requests no longer send pagination parameters to endpoints that do not support them.
+
+### Changed
+- `ReadOnlyResourceBase` gained opt-out pagination handling through the `_paged` flag.
+- Disabled pagination for `DownloadFormat`, `FileState`, `LicenseRelease`, `ModelRelease`, `Portal` and `PropertyRelease`.
+
+## [0.4.1] - 2026-05-04
+
+### Fixed
+- Refactored response field handling in the file convert path so conversion requests no longer carry an unsupported `responseFields` parameter.
+
+### Documentation
+- Expanded `docs/API_REFERENCE.md` and `docs/DEVELOPER_GUIDE.md` with builder usage for collections and the newer resources.
+- Updated `examples/basic_usage.py` to the builder-based API.
+
+## [0.4.0] - 2026-04-29
+
+### Added
+- Fluent payload builders plus `list()`, `create()` and `update()` convenience methods across the CRUD resources: `Collection`, `DirectLink`, `Directory`, `ExternalShare`, `File`, `License`, `LicenseRelease`, `Model`, `ModelRelease`, `Property`, `PropertyRelease`, `UploadLink`, `User` and `VariantStack`.
+- `FileDeleteBuilder` and `File.delete()`.
+- `CollectionDeleteBuilder` and `Collection.delete()`.
+- Job helpers: `Job.get_status()`, `Job.abort()`, `wait_for_completion()` and `async_wait_for_completion()`.
+
+### Changed
+- Reworked response handling in `File` and improved metadata option processing.
+- Improved docstrings across the resource modules.
+
 ## [0.3] - 2026-04-23
 
 ### Fixed
@@ -15,7 +70,40 @@ All notable changes to this project will be documented in this file.
 
 ### Added
 - Focused unit tests for response field injection behavior in `tests/response_fields_injection_checks.py`.
+- Method-specific response field filtering (`GET_LIST` / `GET_SINGLE`).
+- Webhook parser support for metadata field truncate, keyword added and keyword removed events.
+- `_ResponseObject` string formatting, `to_dict()`, and graceful handling of missing attributes.
 
 ### Documentation
 - Added developer guidance for specialized endpoint response field behavior.
 - Added error handling notes for response field parameter mismatches.
+
+## [0.2] - 2025-11-12
+
+### Added
+- Webhook parser (`pixxio_client/webhook_parser.py`) built around the generalized `EventData` model, plus `pixxio_client/webhook_middleware.py`.
+- PIXXIO webhook stub application for local receiver testing, with Docker support, event storage and a web interface.
+- HMAC-SHA256 webhook signature verification.
+- `File.upload_url_and_wait()` for uploading an asset from a remote URL.
+- `FileUpdateBuilder`, `FileUploadBuilder` and `File.update()`.
+- Metadata value builders with field validation, bulk add/replace/remove and selection option lookup.
+- Per-method response field filtering for `File`.
+
+### Changed
+- Added pagination support to `ReadOnlyResourceBase` and the metadata resources.
+- Introduced query parameter transformation helpers.
+- Consolidated all documentation under `docs/` and added the webhook guides in `docs/webhook/`.
+
+### Fixed
+- `CustomMetadata` and `StandardMetadata` now inherit from `ResourceBase`.
+- Corrected package discovery in `setup.py`.
+- The JSON `Accept` header is now sent with requests.
+
+## [0.1] - 2025-10-02
+
+### Added
+- Initial release: `Client` and `Authentication`, `ReadOnlyResourceBase`, `ResourceBase`, `ResourceUploadMixin` and `ResourceJobMixin`.
+- Resource classes for all endpoints: files, collections, users, directories, jobs, keywords, licenses, license releases, models, model releases, properties, property releases, variant stacks, upload links, direct links, external shares, portals, file states, download formats, permission groups and metadata.
+- Custom exception hierarchy for HTTP status codes and business logic errors.
+- OpenAPI-derived type hints, README, API reference and developer documentation.
+- Example scripts and an integration test suite.

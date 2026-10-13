@@ -1,35 +1,50 @@
-# Metadata Builder Classes
+# PIXXIO Python Client — Documentation Index
 
-The PIXXIO Python client provides builder classes to simplify the construction of metadata payloads for both standard and custom metadata fields. These builders ensure correct formatting and type handling for all field types, including text, date, selection, and multiselection.
+Durable documentation for the PIXXIO Python client. Start with the
+[project README](../README.md) for installation, a quick start and the resource overview.
 
-## Usage
+## Reference
 
-- Use `StandardMetadataBuilder` to build payloads for standard metadata fields.
-- Use `CustomMetadataBuilder` to build payloads for custom metadata fields.
-- These builders automatically fetch field definitions from the API and handle value conversion for selection/multiselection fields.
+| Document | Description |
+|----------|-------------|
+| [API_REFERENCE.md](API_REFERENCE.md) | `Client`, `Authentication`, base classes, resource classes, builders, response field filtering, logging and best practices |
+| [TYPE_SYSTEM.md](TYPE_SYSTEM.md) | Type hints, `PIXXIOResponse`, `JobStatus`/`JobInfo` and the OpenAPI-derived types |
+| [ERROR_HANDLING.md](ERROR_HANDLING.md) | Exception hierarchy, HTTP status mapping, recovery patterns and debugging |
 
-## Example
+## Guides
 
-```python
-from pixxio_client.metadata import StandardMetadataBuilder, CustomMetadataBuilder
+| Document | Description |
+|----------|-------------|
+| [DEVELOPER_GUIDE.md](DEVELOPER_GUIDE.md) | Architecture, resource/mixin patterns and the resource change workflow |
+| [CONTRIBUTING.md](CONTRIBUTING.md) | Contribution guidelines, environment setup and review expectations |
+| [METADATA_BUILDERS.md](METADATA_BUILDERS.md) | Building standard and custom metadata payloads with the metadata builders |
+| [ASYNC_OPERATIONS.md](ASYNC_OPERATIONS.md) | How-to guide for synchronous and asynchronous job tracking, including patterns, best practices and troubleshooting |
+| [ASYNC_JOBS.md](ASYNC_JOBS.md) | Feature reference for job tracking: job states, `JobInfo`, progress callbacks, job abortion and the `Job`/`ResourceJobMixin` methods |
 
-standard_builder = StandardMetadataBuilder(client)
-standard_builder.add("Title", "Test Asset Title")
-standard_metadata_payload = standard_builder.build()
+## Testing
 
-custom_builder = CustomMetadataBuilder(client)
-custom_builder.add("Produktbereich", [98765])
-custom_metadata_payload = custom_builder.build()
-```
+| Document | Description |
+|----------|-------------|
+| [TEST_ENVIRONMENT.md](TEST_ENVIRONMENT.md) | Live test environment details, credentials, ready-to-run scenarios and safety rules for the shared system |
+| [tests/README.md](../tests/README.md) | Test suite inventory and instructions for individual test modules |
 
-See [../tests/test_upload_with_metadata.py](../tests/test_upload_with_metadata.py) for a full example.
+## Webhooks
 
-## Benefits
-- Ensures correct value formatting for all metadata field types
-- Reduces boilerplate and manual mapping
-- Automatically fetches field definitions from the API
-- Supports all field types, including text, date, selection, and multiselection
+| Document | Description |
+|----------|-------------|
+| [webhook/README.md](webhook/README.md) | Parser overview, event structure and field access patterns |
+| [webhook/QUICK_START.md](webhook/QUICK_START.md) | Five-minute introduction to parsing PIXXIO webhooks |
+| [webhook/PARSER_IMPLEMENTATION.md](webhook/PARSER_IMPLEMENTATION.md) | Parser architecture, usage patterns and migration notes |
+| [webhook/USAGE_EXAMPLES.md](webhook/USAGE_EXAMPLES.md) | Practical handlers: logging, metadata handling, SQLAlchemy and FastAPI |
 
-## References
-- [API Reference](API_REFERENCE.md)
-- [Developer Guide](DEVELOPER_GUIDE.md)
+Related material outside this folder:
+
+- [webhook_stub/](../webhook_stub/README.md) — FastAPI receiver for local webhook testing, with its own setup, deployment, usage and security docs.
+- [event_json_examples/](../event_json_examples) — captured webhook payload fixtures used by the parser tests.
+
+## Related
+
+- [Root README](../README.md) — installation, quick start, resource and builder overview
+- [CHANGELOG](../CHANGELOG.md) — release history
+- [examples/](../examples) — runnable example scripts, including the InDesign/COM workflows
+- [AGENTS.md](../AGENTS.md) — repository documentation contracts
