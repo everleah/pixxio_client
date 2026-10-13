@@ -184,3 +184,6 @@ logs/
 # Backup files
 *.bak
 *.backup
+
+# Push scripts
+push_*.bat
