@@ -8,7 +8,7 @@ This directory contains various test files for the PIXXIO Python client library.
 **Main comprehensive test suite** - Run this to verify all client functionality works correctly.
 - Tests all major API endpoints (files, collections, users, etc.)
 - Validates CRUD operations, file uploads, job tracking
-- Uses live test environment (hoerl-demo.px.media)
+- Uses live test environment (<your-test-host>)
 - Returns detailed test results with pass/fail status
 
 **Usage:**
@@ -82,7 +82,7 @@ python -m unittest tests.response_fields_injection_checks tests.test_webhook_par
 Credentials are read from the environment and are never stored in the repository
 (see [credentials.py](credentials.py)):
 
-- **Host:** `PIXXIO_TEST_HOST`, defaults to `hoerl-demo.px.media`
+- **Host:** `PIXXIO_TEST_HOST`, defaults to `<your-test-host>`
 - **API Key:** `PIXXIO_TEST_API_KEY`, required — ask a maintainer for access
 - **Environment:** Live PIXXIO test system
 

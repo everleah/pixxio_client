@@ -75,7 +75,7 @@ For complete security documentation, see: `WEBHOOK_SECURITY.md`
 ### Accessing the Dashboard
 
 - **Local**: `http://localhost:5000`
-- **Remote**: `https://pixxiostub.claudiapps.de`
+- **Remote**: `https://<your-stub-host>`
 
 ### Dashboard Features
 
@@ -107,7 +107,7 @@ When no events have been received:
 📭
 No webhook events received yet.
 Configure PIXXIO to send webhooks to:
-http://localhost:5000/webhook  (or https://pixxiostub.claudiapps.de/webhook)
+http://localhost:5000/webhook  (or https://<your-stub-host>/webhook)
 ```
 
 ### Dashboard Actions
@@ -153,31 +153,31 @@ Removes all stored webhooks. Use to:
 
 ### Base URL
 - **Local**: `http://localhost:5000`
-- **Remote**: `https://pixxiostub.claudiapps.de`
+- **Remote**: `https://<your-stub-host>`
 
 ### Interactive API Docs
 
 **Swagger UI** (Try endpoints live):
 ```
-https://pixxiostub.claudiapps.de/docs
+https://<your-stub-host>/docs
 ```
 
 **ReDoc** (Read-only reference):
 ```
-https://pixxiostub.claudiapps.de/redoc
+https://<your-stub-host>/redoc
 ```
 
 ### API Endpoints
 
 #### 1. **GET /** - Web Dashboard
 ```bash
-curl https://pixxiostub.claudiapps.de/
+curl https://<your-stub-host>/
 ```
 Returns HTML page with event list and controls.
 
 #### 2. **POST /webhook** - Receive Webhook
 ```bash
-curl -X POST https://pixxiostub.claudiapps.de/webhook \
+curl -X POST https://<your-stub-host>/webhook \
   -H "Content-Type: application/json" \
   -d '{
     "event": "file.uploaded",
@@ -199,17 +199,17 @@ curl -X POST https://pixxiostub.claudiapps.de/webhook \
 #### 3. **GET /download/{filename}** - Download Event JSON
 ```bash
 # List files first to get filename
-curl -s https://pixxiostub.claudiapps.de/ | grep webhook_
+curl -s https://<your-stub-host>/ | grep webhook_
 
 # Download specific event
-curl -O https://pixxiostub.claudiapps.de/download/webhook_20251111_123000_001.json
+curl -O https://<your-stub-host>/download/webhook_20251111_123000_001.json
 ```
 
 Returns JSON file with webhook payload.
 
 #### 4. **POST /delete/{filename}** - Delete Event
 ```bash
-curl -X POST https://pixxiostub.claudiapps.de/delete/webhook_20251111_123000_001.json
+curl -X POST https://<your-stub-host>/delete/webhook_20251111_123000_001.json
 ```
 
 **Response**:
@@ -222,7 +222,7 @@ curl -X POST https://pixxiostub.claudiapps.de/delete/webhook_20251111_123000_001
 
 #### 5. **POST /clear** - Delete All Events
 ```bash
-curl -X POST https://pixxiostub.claudiapps.de/clear
+curl -X POST https://<your-stub-host>/clear
 ```
 
 **Response**:
@@ -235,7 +235,7 @@ curl -X POST https://pixxiostub.claudiapps.de/clear
 
 #### 6. **GET /health** - Health Check
 ```bash
-curl https://pixxiostub.claudiapps.de/health
+curl https://<your-stub-host>/health
 ```
 
 **Response**:
@@ -255,7 +255,7 @@ Use for monitoring and uptime checks.
 ### Step 1: Get Webhook URL
 
 **Local**: `http://localhost:5000/webhook`
-**Remote**: `https://pixxiostub.claudiapps.de/webhook`
+**Remote**: `https://<your-stub-host>/webhook`
 
 ### Step 2: Configure in PIXXIO Admin
 
@@ -267,7 +267,7 @@ Use for monitoring and uptime checks.
    | Field | Value |
    |-------|-------|
    | **Name** | PIXXIO Webhook Stub (or any descriptive name) |
-   | **URL** | `https://pixxiostub.claudiapps.de/webhook` |
+   | **URL** | `https://<your-stub-host>/webhook` |
    | **Method** | `POST` |
    | **Content-Type** | `application/json` |
    | **Events** | Select events to monitor (see below) |
@@ -290,8 +290,8 @@ PIXXIO webhooks are now **documented through actual payloads**! The webhook stru
       "action": "updated",
       "name": "updateFile",
       "createDate": "2025-11-11 13:32:52",
-      "userID": 130052009,
-      "userName": "admin_claudius",
+      "userID": 1000000002,
+      "userName": "demo_editor",
       "resourceType": "file",
       "resourceID": 1930337128,
       "resourceName": "-",
@@ -348,7 +348,7 @@ This webhook stub exists **precisely to help you discover** what PIXXIO webhooks
 
 **Setup**:
 1. Enable file-related events in webhook (or select all to discover)
-2. Visit dashboard at `https://pixxiostub.claudiapps.de`
+2. Visit dashboard at `https://<your-stub-host>`
 3. Trigger file upload in PIXXIO
 4. Watch webhook appear in real-time on dashboard
 
@@ -484,7 +484,7 @@ import time
 
 # Monitor webhook stub
 while True:
-    response = requests.get('https://pixxiostub.claudiapps.de/')
+    response = requests.get('https://<your-stub-host>/')
     # Parse HTML and extract events
     # Process each event
     # Do something with the data
@@ -495,7 +495,7 @@ while True:
 
 ```bash
 # Receive from PIXXIO, forward to another service
-curl -X POST https://pixxiostub.claudiapps.de/webhook \
+curl -X POST https://<your-stub-host>/webhook \
   -d '{"event":"file.uploaded","fileId":12345}' \
   && curl -X POST https://your-system.com/webhook \
        -d '{"source":"pixxio","event":"file.uploaded","fileId":12345}'
@@ -585,7 +585,7 @@ If dashboard loads slowly:
 For automated processing, use API instead of dashboard:
 ```bash
 # Clear all via API (faster than web interface)
-curl -X POST https://pixxiostub.claudiapps.de/clear
+curl -X POST https://<your-stub-host>/clear
 ```
 
 ---
@@ -595,7 +595,7 @@ curl -X POST https://pixxiostub.claudiapps.de/clear
 ### Issue: Events not appearing
 
 **Check**:
-1. Is webhook stub running? `https://pixxiostub.claudiapps.de/health`
+1. Is webhook stub running? `https://<your-stub-host>/health`
 2. Is PIXXIO webhook configured correctly? (URL, method, events)
 3. Did you click "Save" in PIXXIO after configuration?
 4. Try manual test from PIXXIO → "Test Webhook" button

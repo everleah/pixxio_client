@@ -12,7 +12,7 @@ The webhook stub is a FastAPI-based service that receives and stores webhook eve
 │  Sends webhooks to HTTPS endpoint       │
 └──────────────┬──────────────────────────┘
                │ HTTPS POST
-               │ pixxiostub.claudiapps.de/webhook
+               │ <your-stub-host>/webhook
                ▼
 ┌─────────────────────────────────────────┐
 │  Traefik (Reverse Proxy)                │
@@ -41,8 +41,8 @@ The webhook stub is a FastAPI-based service that receives and stores webhook eve
 ## Prerequisites
 
 - Docker and Docker Compose installed
-- Traefik reverse proxy running on the server with `claudiapp-net` network
-- DNS record: `pixxiostub.claudiapps.de` → your server IP
+- Traefik reverse proxy running on the server with `<your-traefik-network>` network
+- DNS record: `<your-stub-host>` → your server IP
 - Let's Encrypt certificate resolver named `letsencrypt` configured in Traefik
 
 ## Local Development & Testing
@@ -58,12 +58,16 @@ Server runs on `http://localhost:5000`
 
 ### Docker Compose (Local)
 
+Create your local configuration first and never commit it:
+
 ```bash
 cd webhook_stub
+cp .env.example .env
+# edit .env: PIXXIO_WEBHOOK_SECRET, STUB_HOST, STUB_NETWORK
 docker-compose -f docker-compose.yml up -d
 ```
 
-Access at `http://localhost:5000`
+Access at `http://localhost:5000` locally, or via Traefik at `https://$STUB_HOST`.
 
 ### Test Webhook Locally
 
@@ -85,13 +89,13 @@ curl http://localhost:5000/
 ### Prerequisites on Netcup Server
 
 1. **Traefik running** with:
-   - External network: `claudiapp-net`
+   - External network: `<your-traefik-network>`
    - Certificate resolver: `letsencrypt`
    - HTTPS entry point: `websecure` on port 443
 
 2. **DNS record configured**:
    ```
-   pixxiostub.claudiapps.de  A  <your-netcup-server-ip>
+   <your-stub-host>  A  <your-netcup-server-ip>
    ```
 
 3. **SSH access** to your Netcup server
@@ -135,21 +139,22 @@ curl http://localhost:5000/
 5. **Test HTTPS endpoint**:
 
    ```bash
-   curl -X GET https://pixxiostub.claudiapps.de/health
+   curl -X GET https://<your-stub-host>/health
 
    # Send test webhook
-   curl -X POST https://pixxiostub.claudiapps.de/webhook \
+   curl -X POST https://<your-stub-host>/webhook \
      -H "Content-Type: application/json" \
      -d '{"event":"deployment.test","timestamp":"2025-11-11T12:00:00Z"}'
    ```
 
 6. **Access web dashboard**:
 
-   Open browser: `https://pixxiostub.claudiapps.de`
+   Open browser: `https://<your-stub-host>`
 
 ## Docker Compose Configuration
 
-The `docker-compose.yml` is configured for Traefik integration:
+The `docker-compose.yml` is configured for Traefik integration and reads its
+deployment-specific values from `.env` (see `.env.example`):
 
 ```yaml
 services:
@@ -161,15 +166,23 @@ services:
       - webhook_data:/data/webhooks      # Persistent storage
     environment:
       - WEBHOOK_STORAGE_DIR=/data/webhooks
+      - PIXXIO_WEBHOOK_SECRET=${PIXXIO_WEBHOOK_SECRET:?PIXXIO_WEBHOOK_SECRET must be set}
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.webhook-stub.rule=Host(`pixxiostub.claudiapps.de`)"
+      - "traefik.http.routers.webhook-stub.rule=Host(`${STUB_HOST:?STUB_HOST must be set}`)"
       - "traefik.http.routers.webhook-stub.entrypoints=websecure"  # HTTPS
       - "traefik.http.routers.webhook-stub.tls.certresolver=letsencrypt"
       - "traefik.http.services.webhook-stub.loadbalancer.server.port=5000"
     networks:
-      - claudiapp-net                    # External Traefik network
+      - traefik                          # External Traefik network
+
+networks:
+  traefik:
+    external: true
+    name: ${STUB_NETWORK:?STUB_NETWORK must be set}
 ```
+
+`docker compose up` fails with a clear message when any of the three variables is unset.
 
 ## API Endpoints
 
@@ -186,14 +199,14 @@ services:
 ## PIXXIO Webhook Configuration
 
 1. **In PIXXIO Admin Panel**, configure webhook:
-   - **URL**: `https://pixxiostub.claudiapps.de/webhook`
+   - **URL**: `https://<your-stub-host>/webhook`
    - **Method**: `POST`
    - **Content-Type**: `application/json`
    - **Events**: Select events to monitor (file upload, metadata changes, etc.)
 
 2. **Test webhook**:
    - PIXXIO will send a test payload
-   - Check webhook stub dashboard: `https://pixxiostub.claudiapps.de`
+   - Check webhook stub dashboard: `https://<your-stub-host>`
    - Event should appear in the list
 
 ## Storage
@@ -214,7 +227,7 @@ docker exec pixxio-webhook-stub ls -lah /data/webhooks
 docker exec pixxio-webhook-stub cat /data/webhooks/webhook_20251111_121500_123.json
 
 # Download via web interface
-# Visit: https://pixxiostub.claudiapps.de
+# Visit: https://<your-stub-host>
 # Click "Download" on desired event
 ```
 
@@ -234,14 +247,14 @@ docker-compose up -d
 
 1. **Check connectivity**:
    ```bash
-   curl -v https://pixxiostub.claudiapps.de/health
+   curl -v https://<your-stub-host>/health
    ```
 
 2. **Check firewall**: Ensure port 443 is open
 
 3. **Verify DNS**: 
    ```bash
-   nslookup pixxiostub.claudiapps.de
+   nslookup <your-stub-host>
    ```
 
 4. **Check Traefik logs**:
@@ -277,7 +290,7 @@ docker-compose up -d
 
 2. **Verify network**:
    ```bash
-   docker network inspect claudiapp-net
+   docker network inspect <your-traefik-network>
    docker inspect pixxio-webhook-stub | grep Networks
    ```
 
@@ -294,7 +307,7 @@ The container includes a built-in health check:
 
 ```bash
 # Manual health check
-curl https://pixxiostub.claudiapps.de/health
+curl https://<your-stub-host>/health
 
 # Expected response
 {"status":"ok","storage_dir":"/data/webhooks"}
@@ -342,7 +355,7 @@ watch -n 1 'docker exec pixxio-webhook-stub ls -lart /data/webhooks | tail -5'
 3. **Verify health**:
    ```bash
    docker-compose ps
-   curl https://pixxiostub.claudiapps.de/health
+   curl https://<your-stub-host>/health
    ```
 
 ### Backup stored webhooks
@@ -358,11 +371,11 @@ docker run --rm -v webhook_stub_webhook_data:/data/webhooks \
 
 ```bash
 # Via web interface
-# Visit: https://pixxiostub.claudiapps.de
+# Visit: https://<your-stub-host>
 # Click "Clear All Events"
 
 # Or via API
-curl -X POST https://pixxiostub.claudiapps.de/clear
+curl -X POST https://<your-stub-host>/clear
 ```
 
 ### Stop the service
@@ -394,7 +407,7 @@ docker-compose up -d
 ### Interactive Swagger UI
 
 ```
-https://pixxiostub.claudiapps.de/docs
+https://<your-stub-host>/docs
 ```
 
 Try out endpoints directly in the browser!
@@ -402,7 +415,7 @@ Try out endpoints directly in the browser!
 ### ReDoc Documentation
 
 ```
-https://pixxiostub.claudiapps.de/redoc
+https://<your-stub-host>/redoc
 ```
 
 ## Support
@@ -410,7 +423,7 @@ https://pixxiostub.claudiapps.de/redoc
 For issues or improvements:
 
 1. Check logs: `docker-compose logs`
-2. Test health: `curl https://pixxiostub.claudiapps.de/health`
+2. Test health: `curl https://<your-stub-host>/health`
 3. Review webhook payload in dashboard
 4. Check PIXXIO webhook configuration
 5. Verify Traefik configuration and routing

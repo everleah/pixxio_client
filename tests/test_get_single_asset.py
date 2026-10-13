@@ -17,11 +17,11 @@ from pixxio_client.files import File
 
 # Test configuration
 try:  # direct execution: python tests/<script>.py
-    from credentials import require_api_key, test_host
+    from credentials import require_api_key, require_test_host
 except ImportError:  # module execution: python -m tests.<module>
-    from tests.credentials import require_api_key, test_host
+    from tests.credentials import require_api_key, require_test_host
 
-TEST_HOST = test_host()
+TEST_HOST = require_test_host()
 TEST_API_KEY = require_api_key()
 
 # Asset ID to retrieve

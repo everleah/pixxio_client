@@ -4,9 +4,9 @@
 
 - **Service**: PIXXIO webhook receiver and analyzer
 - **Technology**: FastAPI, Uvicorn, Docker, Traefik
-- **Access**: `https://pixxiostub.claudiapps.de`
+- **Access**: `https://<your-stub-host>`
 - **Storage**: Docker volume (`webhook_data`) - persistent
-- **Health Check**: `https://pixxiostub.claudiapps.de/health`
+- **Health Check**: `https://<your-stub-host>/health`
 
 ## File Structure
 
@@ -44,10 +44,10 @@ docker-compose build --no-cache
 docker-compose up -d
 
 # Wait 10 seconds for startup, then test
-curl https://pixxiostub.claudiapps.de/health
+curl https://<your-stub-host>/health
 
 # View dashboard
-# Open: https://pixxiostub.claudiapps.de
+# Open: https://<your-stub-host>
 ```
 
 ## Key Components
@@ -66,12 +66,25 @@ curl https://pixxiostub.claudiapps.de/health
 
 ### 3. **docker-compose.yml**
 - Service: `webhook-stub`
-- Network: `claudiapp-net` (external, shared with Traefik)
+- Network: `traefik` (external, shared with Traefik; actual name from `STUB_NETWORK`)
 - Volume: `webhook_data` (persistent)
 - Traefik labels for HTTPS routing
 - Container: `pixxio-webhook-stub`
+- Deployment values (`PIXXIO_WEBHOOK_SECRET`, `STUB_HOST`, `STUB_NETWORK`) come from `.env`
 
 ## Configuration Files Explained
+
+### .env
+
+Copy `.env.example` to `.env` and fill in:
+
+```bash
+PIXXIO_WEBHOOK_SECRET=<your-webhook-secret>
+STUB_HOST=<your-stub-host>
+STUB_NETWORK=<your-traefik-network>
+```
+
+`.env` is git-ignored; never commit it.
 
 ### docker-compose.yml Traefik Labels
 
@@ -80,7 +93,7 @@ labels:
   - "traefik.enable=true"
     # Enable Traefik routing
   
-  - "traefik.http.routers.webhook-stub.rule=Host(`pixxiostub.claudiapps.de`)"
+  - "traefik.http.routers.webhook-stub.rule=Host(`${STUB_HOST:?STUB_HOST must be set}`)"
     # Route requests to this domain
   
   - "traefik.http.routers.webhook-stub.entrypoints=websecure"
@@ -138,7 +151,7 @@ docker-compose up -d
 
 1. **Get webhook URL**:
    ```
-   https://pixxiostub.claudiapps.de/webhook
+   https://<your-stub-host>/webhook
    ```
 
 2. **In PIXXIO Admin**:
@@ -167,7 +180,7 @@ docker-compose up -d
 | Problem | Cause | Solution |
 |---------|-------|----------|
 | Container unhealthy | Requests module missing | `docker-compose build --no-cache` |
-| Can't access domain | DNS not resolved | `nslookup pixxiostub.claudiapps.de` |
+| Can't access domain | DNS not resolved | `nslookup <your-stub-host>` |
 | 404 on HTTPS endpoint | Traefik routing issue | Check `docker logs traefik` |
 | No webhooks appear | PIXXIO not sending | Verify URL in PIXXIO config |
 | Storage not persisting | Volume issue | `docker volume inspect webhook_stub_webhook_data` |
@@ -202,8 +215,8 @@ docker exec pixxio-webhook-stub curl http://localhost:5000/health
 ## Next Steps
 
 1. Deploy on Netcup
-2. Configure PIXXIO webhook to send to `https://pixxiostub.claudiapps.de/webhook`
-3. Monitor dashboard at `https://pixxiostub.claudiapps.de`
+2. Configure PIXXIO webhook to send to `https://<your-stub-host>/webhook`
+3. Monitor dashboard at `https://<your-stub-host>`
 4. Analyze webhook payloads to understand PIXXIO events
 5. Extend with custom logic as needed
 

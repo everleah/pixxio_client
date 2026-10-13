@@ -20,7 +20,6 @@ from pixxio_client.collections import Collection
 from pixxio_client.files import File
 
 
-DEFAULT_HOST = "https://weru.px.media/"
 DEFAULT_COLLECTION_NAME = "hoerl_InDesign_Dokumente"
 DEFAULT_OUTPUT_DIR = Path(__file__).resolve().parent / "data"
 
@@ -288,13 +287,16 @@ def main() -> None:
     parser = argparse.ArgumentParser(
         description="Lade alle Assets einer PIXXIO-Collection und erstelle eine Mapping-CSV."
     )
-    parser.add_argument("--host", default=os.getenv("PIXXIO_HOST", DEFAULT_HOST))
+    parser.add_argument("--host", default=os.getenv("PIXXIO_HOST"),
+                        help="PIXXIO host; defaults to the PIXXIO_HOST environment variable")
     parser.add_argument("--api-key", default=os.getenv("PIXXIO_API_KEY"),
                         help="PIXXIO API key; defaults to the PIXXIO_API_KEY environment variable")
     parser.add_argument("--collection", default=DEFAULT_COLLECTION_NAME)
     parser.add_argument("--output-dir", default=str(DEFAULT_OUTPUT_DIR))
 
     args = parser.parse_args()
+    if not args.host:
+        parser.error("--host is required (or set the PIXXIO_HOST environment variable)")
     if not args.api_key:
         parser.error("--api-key is required (or set the PIXXIO_API_KEY environment variable)")
     download_collection_assets(

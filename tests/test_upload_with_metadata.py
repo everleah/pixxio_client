@@ -7,12 +7,12 @@ import requests
 import os
 
 try:  # direct execution: python tests/<script>.py
-    from credentials import require_api_key, test_host
+    from credentials import require_api_key, require_test_host
 except ImportError:  # module execution: python -m tests.<module>
-    from tests.credentials import require_api_key, test_host
+    from tests.credentials import require_api_key, require_test_host
 
 api_key = require_api_key()
-host = test_host()
+host = require_test_host()
 file_url = "https://www.w3.org/People/mimasa/test/imgformat/img/w3c_home.jpg"
 
 # Example metadata values

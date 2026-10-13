@@ -496,9 +496,9 @@ real_webhook_payload = {
             "applicationKey": "app1",
             "applicationName": "pixx.io",
             "userType": "user",
-            "userID": 130052009,
-            "userName": "admin_claudius",
-            "userDescriptiveName": "Claudius Hansch",
+            "userID": 1000000002,
+            "userName": "demo_editor",
+            "userDescriptiveName": "Demo Editor",
             "resourceType": "file",
             "resourceID": 1376045043,
             "resourceName": "-",
@@ -523,15 +523,15 @@ real_webhook_payload = {
             "applicationKey": "app1",
             "applicationName": "pixx.io",
             "userType": "user",
-            "userID": 130052009,
-            "userName": "admin_claudius",
-            "userDescriptiveName": "Claudius Hansch",
+            "userID": 1000000002,
+            "userName": "demo_editor",
+            "userDescriptiveName": "Demo Editor",
             "resourceType": "file",
             "resourceID": 1376045043,
             "resourceName": "tmprg44afs5.txt",
             "resourceOwnerUserType": "user",
-            "resourceOwnerUserID": 1041188852,
-            "resourceOwnerUserName": "admin_hoerl",
+            "resourceOwnerUserID": 1000000001,
+            "resourceOwnerUserName": "demo_admin",
             "data": {
                 "eventKey": "fileModifiedFileName",
                 "newFileName": "tmprg44afs5_testdatei.txt",
@@ -552,7 +552,7 @@ handle_batch_webhook_events(real_webhook_payload)
 # ✓ Metadata change: Kurzbeschreibung
 #   Old: None
 #   New: VIel X
-#   By: Claudius Hansch
+#   By: Demo Editor
 #
 # ✓ File property change: fileModifiedFileName
 #   Renamed: tmprg44afs5.txt → tmprg44afs5_testdatei.txt
@@ -604,7 +604,7 @@ def process_batch_with_truncate_and_languages():
                 "name": "updateFile",
                 "createDate": "2025-11-13 13:24:52",
                 "modifyDate": "2025-11-13 13:24:52",
-                "userDescriptiveName": "Claudius Hansch",
+                "userDescriptiveName": "Demo Editor",
                 "resourceID": 1376045043,
                 "data": {
                     "eventKey": "fileModifiedMetadataFieldTruncate",
@@ -619,7 +619,7 @@ def process_batch_with_truncate_and_languages():
                 "name": "updateFile",
                 "createDate": "2025-11-13 13:24:52",
                 "modifyDate": "2025-11-13 13:24:52",
-                "userDescriptiveName": "Claudius Hansch",
+                "userDescriptiveName": "Demo Editor",
                 "resourceID": 1376045043,
                 "data": {
                     "eventKey": "fileModifiedMetadataFieldTruncate",
@@ -640,7 +640,7 @@ def process_batch_with_truncate_and_languages():
                 "name": "updateFile",
                 "createDate": "2025-11-13 13:24:52",
                 "modifyDate": "2025-11-13 13:24:52",
-                "userDescriptiveName": "Claudius Hansch",
+                "userDescriptiveName": "Demo Editor",
                 "resourceID": 1376045043,
                 "data": {
                     "eventKey": "fileModifiedLanguageCodesAdded",
@@ -660,7 +660,7 @@ def process_batch_with_truncate_and_languages():
                 "name": "updateFile",
                 "createDate": "2025-11-13 13:24:52",
                 "modifyDate": "2025-11-13 13:24:52",
-                "userDescriptiveName": "Claudius Hansch",
+                "userDescriptiveName": "Demo Editor",
                 "resourceID": 1376045043,
                 "data": {
                     "eventKey": "fileModifiedLanguageCodesRemoved",
@@ -690,20 +690,20 @@ def process_batch_with_truncate_and_languages():
 # ==================================================
 # 🗑️  Field cleared: Produktbereich
 #    Previous data: ['Kabel']
-#    By: Claudius Hansch
+#    By: Demo Editor
 # 🗑️  Field cleared: Kanal
 #    Previous data: ['STEP']
-#    By: Claudius Hansch
+#    By: Demo Editor
 #
 # Processing Language Added Event:
 # ==================================================
 # 🌐 Languages added: ar-dz, sq
-#    By: Claudius Hansch
+#    By: Demo Editor
 #
 # Processing Language Removed Event:
 # ==================================================
 # ❌ Languages removed: af
-#    By: Claudius Hansch
+#    By: Demo Editor
 ```
 
 ### Example 13: Handle Keyword Events (Added/Deleted)
@@ -742,7 +742,7 @@ def process_keyword_events():
                 "name": "updateFile",
                 "createDate": "2025-11-13 13:40:51",
                 "modifyDate": "2025-11-13 13:40:51",
-                "userDescriptiveName": "Claudius Hansch",
+                "userDescriptiveName": "Demo Editor",
                 "resourceID": 1376045043,
                 "resourceName": "tmprg44afs5_testdatei.txt",
                 "data": {
@@ -763,7 +763,7 @@ def process_keyword_events():
                 "name": "updateFile",
                 "createDate": "2025-11-13 13:42:13",
                 "modifyDate": "2025-11-13 13:42:13",
-                "userDescriptiveName": "Claudius Hansch",
+                "userDescriptiveName": "Demo Editor",
                 "resourceID": 1376045043,
                 "resourceName": "tmprg44afs5_testdatei.txt",
                 "data": {
@@ -789,14 +789,14 @@ def process_keyword_events():
 # ==================================================
 # ✨ Keywords added to 'tmprg44afs5_testdatei.txt':
 #    Keywords: demo
-#    By: Claudius Hansch
+#    By: Demo Editor
 #    At: 2025-11-13 13:40:51
 #
 # Processing Keyword Deleted Event:
 # ==================================================
 # 🗑️  Keywords removed from 'tmprg44afs5_testdatei.txt':
 #    Keywords: example
-#    By: Claudius Hansch
+#    By: Demo Editor
 #    At: 2025-11-13 13:42:13
 ```
 

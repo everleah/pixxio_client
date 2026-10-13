@@ -49,7 +49,7 @@ docker-compose up -d
 
 **Dashboard:**
 - Local: `http://localhost:5000`
-- Remote: `https://pixxiostub.claudiapps.de`
+- Remote: `https://<your-stub-host>`
 
 **Tests ausführen:**
 ```bash
@@ -57,7 +57,7 @@ docker exec pixxio-webhook-stub python3 /app/test_webhook_security.py
 ```
 
 **PIXXIO konfigurieren:**
-1. Webhook URL: `https://pixxiostub.claudiapps.de/webhook`
+1. Webhook URL: `https://<your-stub-host>/webhook`
 2. Secret: `<your-webhook-secret>`
 3. Test-Events senden und im Dashboard prüfen
 

@@ -88,13 +88,13 @@ docker exec pixxio-webhook-stub python3 /app/test_webhook_security.py
 ```
 
 ### 4. PIXXIO konfigurieren
-- Webhook URL: `https://pixxiostub.claudiapps.de/webhook`
+- Webhook URL: `https://<your-stub-host>/webhook`
 - Secret: `<your-webhook-secret>`
 - Test-Events senden → sollten im Dashboard angezeigt werden
 
 ### 5. Dashboard prüfen
 - Local: `http://localhost:5000`
-- Remote: `https://pixxiostub.claudiapps.de`
+- Remote: `https://<your-stub-host>`
 - Gespeicherte Webhooks können angezeigt, heruntergeladen oder gelöscht werden
 
 ## 🔍 Sicherheitsmerkmale

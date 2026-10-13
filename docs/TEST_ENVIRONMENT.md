@@ -4,7 +4,7 @@ This document provides information about the test environment and how to use it 
 
 ## Test Environment Details
 
-**Test System URL**: https://hoerl-demo.px.media/
+**Test System URL**: https://<your-test-host>/
 **API Username**: api_user
 **API Key**: not stored in this repository — ask a maintainer for access
 
@@ -18,7 +18,7 @@ The test environment also delivers webhooks, which can be verified and parsed wi
 [`pixxio_client.webhook_middleware`](../pixxio_client/webhook_middleware.py):
 
 **Webhook Username**: connector_hub
-**Webhook URL**: https://hoerl-demo.px.media/connector_hub_hook
+**Webhook URL**: https://<your-test-host>/connector_hub_hook
 **Webhook Secret**: not stored in this repository — ask a maintainer for access
 
 Captured payload fixtures are available in [../event_json_examples](../event_json_examples),
@@ -41,7 +41,7 @@ Create a `.env` file in your project root:
 
 ```bash
 # .env file (don't commit this to version control)
-PIXXIO_TEST_HOST=hoerl-demo.px.media
+PIXXIO_TEST_HOST=<your-test-host>
 PIXXIO_TEST_API_KEY=<your-api-key>
 ```
 
@@ -64,7 +64,7 @@ from pixxio_client import Client
 # Create test client
 client = Client.create_client(
     api_key="<your-api-key>",
-    host="hoerl-demo.px.media"
+    host="<your-test-host>"
 )
 
 print("Test client created successfully!")
@@ -83,7 +83,7 @@ def test_connection():
     try:
         client = Client.create_client(
             "<your-api-key>",
-            "hoerl-demo.px.media"
+            "<your-test-host>"
         )
         
         # Test with a simple API call
@@ -118,7 +118,7 @@ def test_file_operations():
     """Test file upload, retrieval, and deletion."""
     client = Client.create_client(
         "<your-api-key>",
-        "hoerl-demo.px.media"
+        "<your-test-host>"
     )
     
     files = File(client)
@@ -174,7 +174,7 @@ def test_collection_operations():
     """Test collection CRUD operations."""
     client = Client.create_client(
         "<your-api-key>",
-        "hoerl-demo.px.media"
+        "<your-test-host>"
     )
     
     collections = Collection(client)
@@ -230,7 +230,7 @@ def test_job_tracking():
     """Test job tracking with file upload."""
     client = Client.create_client(
         "<your-api-key>", 
-        "hoerl-demo.px.media"
+        "<your-test-host>"
     )
     
     files = File(client)
@@ -282,7 +282,7 @@ def test_error_handling():
     
     # Test with invalid API key
     try:
-        invalid_client = Client.create_client("invalid-key", "hoerl-demo.px.media")
+        invalid_client = Client.create_client("invalid-key", "<your-test-host>")
         files = File(invalid_client)
         files.get()
         print("❌ Should have failed with invalid key")
@@ -294,7 +294,7 @@ def test_error_handling():
     # Test with valid client
     client = Client.create_client(
         "<your-api-key>",
-        "hoerl-demo.px.media"
+        "<your-test-host>"
     )
     files = File(client)
     
@@ -330,7 +330,7 @@ if __name__ == "__main__":
 #!/usr/bin/env python3
 """
 Comprehensive test suite for PIXXIO Python client library.
-Uses the hoerl-demo.px.media test environment.
+Uses the <your-test-host> test environment.
 """
 
 import sys
@@ -345,7 +345,7 @@ from pixxio_client.users import User
 from pixxio_client.exceptions import *
 
 # Test configuration
-TEST_HOST = "hoerl-demo.px.media"
+TEST_HOST = "<your-test-host>"
 TEST_API_KEY = "<your-api-key>"
 
 class TestResult:
@@ -536,7 +536,7 @@ from pixxio_client import Client
 
 client = Client.create_client(
     "<your-api-key>",
-    "hoerl-demo.px.media"
+    "<your-test-host>"
 )
 
 print("Client created successfully!")
@@ -562,7 +562,7 @@ The test environment provides webhook support for future library enhancements:
 # Future webhook configuration (not yet implemented)
 WEBHOOK_CONFIG = {
     "username": "connector_hub", 
-    "url": "https://hoerl-demo.px.media/connector_hub_hook",
+    "url": "https://<your-test-host>/connector_hub_hook",
     "secret": "<your-webhook-secret>"
 }
 ```

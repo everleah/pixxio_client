@@ -1,5 +1,3 @@
-version: "3.9"
-
 services:
   webhook-stub:
     build: .
@@ -12,17 +10,18 @@ services:
       - PIXXIO_WEBHOOK_SECRET=${PIXXIO_WEBHOOK_SECRET:?PIXXIO_WEBHOOK_SECRET must be set}
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.webhook-stub.rule=Host(`pixxiostub.claudiapps.de`)"
+      - "traefik.http.routers.webhook-stub.rule=Host(`${STUB_HOST:?STUB_HOST must be set}`)"
       - "traefik.http.routers.webhook-stub.entrypoints=websecure"
       - "traefik.http.routers.webhook-stub.tls.certresolver=letsencrypt"
       - "traefik.http.services.webhook-stub.loadbalancer.server.port=5000"
     networks:
-      - claudiapp-net
+      - traefik
 
 volumes:
   webhook_data:
     driver: local
 
 networks:
-  claudiapp-net:
+  traefik:
     external: true
+    name: ${STUB_NETWORK:?STUB_NETWORK must be set}

@@ -25,7 +25,6 @@ from pixxio_client import Client
 from pixxio_client.files import File
 
 
-DEFAULT_HOST = "https://weru.px.media/"
 SCRIPT_DIR = Path(__file__).resolve().parent
 DEFAULT_INPUT_DIR = SCRIPT_DIR / "data"
 DEFAULT_CHANGED_TXT = DEFAULT_INPUT_DIR / "apply_pixxio_labels.changed.txt"
@@ -187,7 +186,8 @@ def main() -> None:
     parser.add_argument("--input-dir", default=str(DEFAULT_INPUT_DIR))
     parser.add_argument("--changed-txt", default=str(DEFAULT_CHANGED_TXT))
     parser.add_argument("--assets-csv", default=str(DEFAULT_ASSETS_CSV))
-    parser.add_argument("--host", default=os.getenv("PIXXIO_HOST", DEFAULT_HOST))
+    parser.add_argument("--host", default=os.getenv("PIXXIO_HOST"),
+                        help="PIXXIO host; defaults to the PIXXIO_HOST environment variable")
     parser.add_argument("--api-key", default=os.getenv("PIXXIO_API_KEY"),
                         help="PIXXIO API key; defaults to the PIXXIO_API_KEY environment variable")
     parser.add_argument("--dry-run", action="store_true")
@@ -198,6 +198,8 @@ def main() -> None:
     )
 
     args = parser.parse_args()
+    if not args.host:
+        parser.error("--host is required (or set the PIXXIO_HOST environment variable)")
     if not args.api_key:
         parser.error("--api-key is required (or set the PIXXIO_API_KEY environment variable)")
 

@@ -3,12 +3,12 @@ import json
 
 # Credentials and endpoint
 try:  # direct execution: python tests/<script>.py
-    from credentials import require_api_key, test_host
+    from credentials import require_api_key, require_test_host
 except ImportError:  # module execution: python -m tests.<module>
-    from tests.credentials import require_api_key, test_host
+    from tests.credentials import require_api_key, require_test_host
 
 API_KEY = require_api_key()
-BASE_URL = f"https://{test_host()}/api/v1/metadata/standard"
+BASE_URL = f"https://{require_test_host()}/api/v1/metadata/standard"
 
 # Example: get all standard metadata fields with responseFields
 headers = {

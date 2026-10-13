@@ -150,7 +150,7 @@ async def webhook(request: Request):
 
 The webhook stub saves all headers, including the signature:
 
-1. Visit dashboard: `https://pixxiostub.claudiapps.de`
+1. Visit dashboard: `https://<your-stub-host>`
 2. Click "🔐 Headers" link
 3. Find the `x-hub-signature-256` header
 4. Use it to test your verification code

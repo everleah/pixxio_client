@@ -23,26 +23,36 @@ A comprehensive Python client library for the PIXXIO Digital Asset Management (D
 
 ## 📦 Installation
 
-The library is distributed through the internal PIXXIO Forgejo package index (there is no public PyPI release). Add that index as an extra index and install:
+**From GitHub:**
 
 ```bash
-pip install pixxio_client --extra-index-url https://git.claudiapps.de/api/packages/Hoerl-IM/pypi/simple/
+pip install git+https://github.com/everleah/pixxio_client.git
 ```
 
-**Development Installation:**
+**PyPI (planned):** once the public release lands, the usual
+
 ```bash
-git clone https://git.claudiapps.de/Hoerl-IM/PixxIO-Client.git
-cd PixxIO-Client
+pip install pixxio_client
+```
+
+will work.
+
+**Development Installation:**
+
+```bash
+git clone https://github.com/everleah/pixxio_client.git
+cd pixxio_client
 python -m pip install -r requirements.txt
 ```
 
 ## 🧪 Tests
 
-A live PIXXIO test environment (`hoerl-demo.px.media`) is used for integration testing. See **[docs/TEST_ENVIRONMENT.md](docs/TEST_ENVIRONMENT.md)** for ready-to-run scenarios and safety guidelines for the shared environment.
+The integration tests run against a live PIXXIO test environment; see **[docs/TEST_ENVIRONMENT.md](docs/TEST_ENVIRONMENT.md)** for ready-to-run scenarios and safety guidelines for the shared system.
 
-Credentials are read from the environment and never committed: set `PIXXIO_TEST_API_KEY` (and optionally `PIXXIO_TEST_HOST`); see [.env.example](.env.example).
+Both values are read from the environment and never committed — set `PIXXIO_TEST_HOST` and `PIXXIO_TEST_API_KEY` (ask a maintainer for access); see [.env.example](.env.example).
 
 **Running the suite:**
+
 ```bash
 # Comprehensive integration suite
 python tests/integration_tests.py
@@ -55,27 +65,28 @@ python -m unittest tests.response_fields_injection_checks tests.test_webhook_par
 ```
 
 ```python
-# Quick test with live environment
+# Quick test against the live environment
 from pixxio_client import Client
 
-# See docs/TEST_ENVIRONMENT.md for actual credentials
-client = Client.create_client("your-test-api-key", "hoerl-demo.px.media")
+# See .env.example for the environment variables
+client = Client.create_client("your-test-api-key", "your-test-host")
 print("✅ Connected to test environment!")
 ```
 
 **Test inventory:**
 
-| File | Purpose |
-|------|---------|
-| [`integration_tests.py`](tests/integration_tests.py) | Full integration suite across files, collections, users and jobs |
-| [`quick_test.py`](tests/quick_test.py) | Fast connection and basic-operation smoke test |
-| [`debug_test.py`](tests/debug_test.py), [`debug_integration.py`](tests/debug_integration.py) | Connectivity troubleshooting with verbose raw responses |
-| [`test_auth_error.py`](tests/test_auth_error.py) | Verifies the exception type raised for invalid API keys |
-| [`test_upload_params.py`](tests/test_upload_params.py), [`test_upload_with_metadata.py`](tests/test_upload_with_metadata.py) | Upload parameters and metadata handling |
-| [`test_get_single_asset.py`](tests/test_get_single_asset.py) | Retrieves a single asset's metadata |
-| [`test_metadata_standard_requests.py`](tests/test_metadata_standard_requests.py) | Raw `requests` probe of the standard-metadata endpoint |
-| [`response_fields_injection_checks.py`](tests/response_fields_injection_checks.py) | Unit tests for `responseFields` injection and opt-out behavior |
-| [`test_webhook_parser_generalized.py`](tests/test_webhook_parser_generalized.py) | Webhook parser tests |
+
+| File                                                                                                                         | Purpose                                                          |
+| ---------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------- |
+| [`integration_tests.py`](tests/integration_tests.py)                                                                         | Full integration suite across files, collections, users and jobs |
+| [`quick_test.py`](tests/quick_test.py)                                                                                       | Fast connection and basic-operation smoke test                   |
+| [`debug_test.py`](tests/debug_test.py), [`debug_integration.py`](tests/debug_integration.py)                                 | Connectivity troubleshooting with verbose raw responses          |
+| [`test_auth_error.py`](tests/test_auth_error.py)                                                                             | Verifies the exception type raised for invalid API keys          |
+| [`test_upload_params.py`](tests/test_upload_params.py), [`test_upload_with_metadata.py`](tests/test_upload_with_metadata.py) | Upload parameters and metadata handling                          |
+| [`test_get_single_asset.py`](tests/test_get_single_asset.py)                                                                 | Retrieves a single asset's metadata                              |
+| [`test_metadata_standard_requests.py`](tests/test_metadata_standard_requests.py)                                             | Raw`requests` probe of the standard-metadata endpoint            |
+| [`response_fields_injection_checks.py`](tests/response_fields_injection_checks.py)                                           | Unit tests for`responseFields` injection and opt-out behavior    |
+| [`test_webhook_parser_generalized.py`](tests/test_webhook_parser_generalized.py)                                             | Webhook parser tests                                             |
 
 ## 🚀 Quick Start
 
@@ -108,21 +119,22 @@ result = files.upload_and_wait(
 
 ## 📚 Documentation
 
-| Document | Description |
-|----------|-------------|
-| **[Documentation Index](docs/README.md)** | Index of all reference, guide, testing and webhook documentation |
-| **[API Reference](docs/API_REFERENCE.md)** | Complete API documentation with examples |
-| **[Developer Guide](docs/DEVELOPER_GUIDE.md)** | Architecture, patterns, and contribution guidelines |
-| **[Test Environment](docs/TEST_ENVIRONMENT.md)** | Live test environment setup and integration tests |
-| **[Async Operations](docs/ASYNC_OPERATIONS.md)** | Asynchronous interfaces and job-tracking patterns |
-| **[Async Jobs](docs/ASYNC_JOBS.md)** | Deep dive into the async job-tracking implementation |
-| **[Error Handling](docs/ERROR_HANDLING.md)** | Exception types and error handling patterns |
-| **[Type System](docs/TYPE_SYSTEM.md)** | Type hints and custom types documentation |
-| **[Metadata Builders](docs/METADATA_BUILDERS.md)** | Builders for standard and custom metadata payloads |
-| **[Webhook Quick Start](docs/webhook/QUICK_START.md)** | Five-minute introduction to webhook parsing |
-| **[Webhook Implementation](docs/webhook/PARSER_IMPLEMENTATION.md)** | Webhook parser architecture and usage patterns |
-| **[Webhook Examples](docs/webhook/USAGE_EXAMPLES.md)** | Practical webhook handling examples |
-| **[Contributing](docs/CONTRIBUTING.md)** | Contribution workflow and code standards |
+
+| Document                                                            | Description                                                      |
+| ------------------------------------------------------------------- | ---------------------------------------------------------------- |
+| **[Documentation Index](docs/README.md)**                           | Index of all reference, guide, testing and webhook documentation |
+| **[API Reference](docs/API_REFERENCE.md)**                          | Complete API documentation with examples                         |
+| **[Developer Guide](docs/DEVELOPER_GUIDE.md)**                      | Architecture, patterns, and contribution guidelines              |
+| **[Test Environment](docs/TEST_ENVIRONMENT.md)**                    | Live test environment setup and integration tests                |
+| **[Async Operations](docs/ASYNC_OPERATIONS.md)**                    | Asynchronous interfaces and job-tracking patterns                |
+| **[Async Jobs](docs/ASYNC_JOBS.md)**                                | Deep dive into the async job-tracking implementation             |
+| **[Error Handling](docs/ERROR_HANDLING.md)**                        | Exception types and error handling patterns                      |
+| **[Type System](docs/TYPE_SYSTEM.md)**                              | Type hints and custom types documentation                        |
+| **[Metadata Builders](docs/METADATA_BUILDERS.md)**                  | Builders for standard and custom metadata payloads               |
+| **[Webhook Quick Start](docs/webhook/QUICK_START.md)**              | Five-minute introduction to webhook parsing                      |
+| **[Webhook Implementation](docs/webhook/PARSER_IMPLEMENTATION.md)** | Webhook parser architecture and usage patterns                   |
+| **[Webhook Examples](docs/webhook/USAGE_EXAMPLES.md)**              | Practical webhook handling examples                              |
+| **[Contributing](docs/CONTRIBUTING.md)**                            | Contribution workflow and code standards                         |
 
 ## 🏷️ Builder Classes
 
@@ -184,6 +196,7 @@ ReadOnlyResourceBase            # GET operations
 `File` combines all three: `class File(ResourceBase, ResourceUploadMixin, ResourceJobMixin)`, while read-only resources (for example `FileState`, `Portal`) stop at `ReadOnlyResourceBase`.
 
 **Core Components:**
+
 - **Client**: Session management, host/base-URL construction and logging
 - **Authentication**: Bearer token handling and request headers
 - **Resources**: One class per endpoint (File, Collection, User, …)
@@ -199,42 +212,45 @@ One class per PIXXIO endpoint. `Upload 📁` marks `ResourceUploadMixin` support
 
 ### Read/write resources
 
-| Resource | Endpoint | Upload 📁 | Jobs ⚡ | Description |
-|----------|----------|-----------|---------|-------------|
-| **File** | `/files` | ✅ | ✅ | Asset upload, download, conversion, bulk update and delete |
-| **Collection** | `/collections` | ❌ | ❌ | Asset collections and organization |
-| **Directory** | `/directories` | ❌ | ❌ | Folder structure, including `get_tree()` |
-| **Keyword** | `/keywords` | ✅ | ❌ | Keyword management and CSV export |
-| **Synonym** | `/synonyms` | ✅ | ❌ | Synonyms per keyword column (extends `Keyword`) |
-| **User** | `/users` | ❌ | ❌ | User management |
-| **License** | `/licenses` | ❌ | ❌ | License definitions |
-| **LicenseRelease** | `/licenseReleases` | ❌ | ❌ | License releases on assets |
-| **Model** | `/models` | ❌ | ❌ | Model definitions |
-| **ModelRelease** | `/modelReleases` | ❌ | ❌ | Model releases on assets |
-| **Property** | `/properties` | ❌ | ❌ | Property definitions |
-| **PropertyRelease** | `/propertyReleases` | ❌ | ❌ | Property releases on assets |
-| **VariantStack** | `/variantStacks` | ❌ | ❌ | Variant stacks grouping file versions |
-| **UploadLink** | `/uploadLinks` | ❌ | ❌ | Guest upload links |
-| **DirectLink** | `/directLinks` | ❌ | ❌ | Direct share links |
-| **ExternalShare** | `/externalShares` | ❌ | ❌ | External shares |
-| **StandardMetadata** | `/metadata/standard` | ❌ | ❌ | Standard metadata fields |
-| **CustomMetadata** | `/metadata/custom` | ❌ | ❌ | Custom metadata fields |
+
+| Resource             | Endpoint             | Upload 📁 | Jobs ⚡ | Description                                                |
+| -------------------- | -------------------- | --------- | ------- | ---------------------------------------------------------- |
+| **File**             | `/files`             | ✅        | ✅      | Asset upload, download, conversion, bulk update and delete |
+| **Collection**       | `/collections`       | ❌        | ❌      | Asset collections and organization                         |
+| **Directory**        | `/directories`       | ❌        | ❌      | Folder structure, including`get_tree()`                    |
+| **Keyword**          | `/keywords`          | ✅        | ❌      | Keyword management and CSV export                          |
+| **Synonym**          | `/synonyms`          | ✅        | ❌      | Synonyms per keyword column (extends`Keyword`)             |
+| **User**             | `/users`             | ❌        | ❌      | User management                                            |
+| **License**          | `/licenses`          | ❌        | ❌      | License definitions                                        |
+| **LicenseRelease**   | `/licenseReleases`   | ❌        | ❌      | License releases on assets                                 |
+| **Model**            | `/models`            | ❌        | ❌      | Model definitions                                          |
+| **ModelRelease**     | `/modelReleases`     | ❌        | ❌      | Model releases on assets                                   |
+| **Property**         | `/properties`        | ❌        | ❌      | Property definitions                                       |
+| **PropertyRelease**  | `/propertyReleases`  | ❌        | ❌      | Property releases on assets                                |
+| **VariantStack**     | `/variantStacks`     | ❌        | ❌      | Variant stacks grouping file versions                      |
+| **UploadLink**       | `/uploadLinks`       | ❌        | ❌      | Guest upload links                                         |
+| **DirectLink**       | `/directLinks`       | ❌        | ❌      | Direct share links                                         |
+| **ExternalShare**    | `/externalShares`    | ❌        | ❌      | External shares                                            |
+| **StandardMetadata** | `/metadata/standard` | ❌        | ❌      | Standard metadata fields                                   |
+| **CustomMetadata**   | `/metadata/custom`   | ❌        | ❌      | Custom metadata fields                                     |
 
 ### Read-only resources
 
-| Resource | Endpoint | Description |
-|----------|----------|-------------|
-| **Job** | `/jobs` | Job status, `wait_for_completion()`, `async_wait_for_completion()`, `abort()` |
-| **Portal** | `/portals` | Portal list and details |
-| **PortalPage** | `/portals/{id}/pages` | Pages inside a portal |
-| **PortalUser** | `/portals/{id}/users` | Current or specific portal user |
-| **FileState** | `/fileStates` | File state definitions |
-| **DownloadFormat** | `/downloadFormats` | Supported download formats |
-| **PermissionGroup** | `/permissionGroups` | Permission groups |
-| **ImportantMetadata** | `/metadata/important` | Important metadata fields |
-| **InternalMetadata** | `/metadata/internal` | Internal metadata fields |
+
+| Resource              | Endpoint              | Description                                                                  |
+| --------------------- | --------------------- | ---------------------------------------------------------------------------- |
+| **Job**               | `/jobs`               | Job status,`wait_for_completion()`, `async_wait_for_completion()`, `abort()` |
+| **Portal**            | `/portals`            | Portal list and details                                                      |
+| **PortalPage**        | `/portals/{id}/pages` | Pages inside a portal                                                        |
+| **PortalUser**        | `/portals/{id}/users` | Current or specific portal user                                              |
+| **FileState**         | `/fileStates`         | File state definitions                                                       |
+| **DownloadFormat**    | `/downloadFormats`    | Supported download formats                                                   |
+| **PermissionGroup**   | `/permissionGroups`   | Permission groups                                                            |
+| **ImportantMetadata** | `/metadata/important` | Important metadata fields                                                    |
+| **InternalMetadata**  | `/metadata/internal`  | Internal metadata fields                                                     |
 
 **Example usage:**
+
 ```python
 from pixxio_client.collections import Collection
 from pixxio_client.users import User
@@ -326,13 +342,14 @@ except PIXXIOException as e:
 The client takes the API key and host explicitly. Scripts in this repository (tests,
 examples, webhook stub) read them from the environment; see [.env.example](.env.example).
 
-| Variable | Used by | Purpose |
-|----------|---------|---------|
-| `PIXXIO_API_KEY` | your code, `examples/` | API key for the PIXXIO server you target |
-| `PIXXIO_HOST` | your code, `examples/` | Host of that server, e.g. `company.pixxio.com` |
-| `PIXXIO_TEST_API_KEY` | `tests/` | API key for the shared test environment |
-| `PIXXIO_TEST_HOST` | `tests/` | Test host, defaults to `hoerl-demo.px.media` |
-| `PIXXIO_WEBHOOK_SECRET` | `webhook_stub/` | Secret for verifying webhook HMAC-SHA256 signatures |
+
+| Variable                | Used by               | Purpose                                             |
+| ----------------------- | --------------------- | --------------------------------------------------- |
+| `PIXXIO_API_KEY`        | your code, `examples/` | API key for the PIXXIO server you target            |
+| `PIXXIO_HOST`           | your code, `examples/` | Host of that server, e.g. `company.pixxio.com`      |
+| `PIXXIO_TEST_API_KEY`   | `tests/`              | API key for the test environment                    |
+| `PIXXIO_TEST_HOST`      | `tests/`              | Host of the test environment                        |
+| `PIXXIO_WEBHOOK_SECRET` | `webhook_stub/`       | Secret for verifying webhook HMAC-SHA256 signatures |
 
 ```bash
 PIXXIO_API_KEY=your-api-key-here
@@ -340,6 +357,7 @@ PIXXIO_HOST=company.pixxio.com
 ```
 
 **Programmatic Configuration:**
+
 ```python
 import logging
 
@@ -363,21 +381,23 @@ result = files.upload_and_wait(
 
 **📁 [examples/](examples/)** - Runnable example collection:
 
-| Script | Purpose |
-|--------|---------|
-| [`basic_usage.py`](examples/basic_usage.py) | Core functionality, collections and builders |
-| [`advanced_async.py`](examples/advanced_async.py) | Concurrent operations and async job tracking |
-| [`async_jobs.py`](examples/async_jobs.py) | Job tracking and monitoring |
-| [`error_handling.py`](examples/error_handling.py) | Exception handling patterns |
-| [`download_collection_assets.py`](examples/download_collection_assets.py) | Download every asset of a collection into an `id;filename` CSV |
-| [`build_pixxio_image_mapping_csv.py`](examples/build_pixxio_image_mapping_csv.py) | Build a filename → asset mapping CSV for InDesign workflows |
-| [`analyze_indd_links_com.py`](examples/analyze_indd_links_com.py) | Extract linked image filenames from InDesign documents (COM) |
-| [`apply_pixxio_labels_to_indd.py`](examples/apply_pixxio_labels_to_indd.py) | Apply PIXXIO labels to InDesign links from a mapping CSV |
-| [`upload_changed_indd_files.py`](examples/upload_changed_indd_files.py) | Replace changed InDesign files in PIXXIO via `replaceID` |
+
+| Script                                                                            | Purpose                                                       |
+| --------------------------------------------------------------------------------- | ------------------------------------------------------------- |
+| [`basic_usage.py`](examples/basic_usage.py)                                       | Core functionality, collections and builders                  |
+| [`advanced_async.py`](examples/advanced_async.py)                                 | Concurrent operations and async job tracking                  |
+| [`async_jobs.py`](examples/async_jobs.py)                                         | Job tracking and monitoring                                   |
+| [`error_handling.py`](examples/error_handling.py)                                 | Exception handling patterns                                   |
+| [`download_collection_assets.py`](examples/download_collection_assets.py)         | Download every asset of a collection into an`id;filename` CSV |
+| [`build_pixxio_image_mapping_csv.py`](examples/build_pixxio_image_mapping_csv.py) | Build a filename → asset mapping CSV for InDesign workflows  |
+| [`analyze_indd_links_com.py`](examples/analyze_indd_links_com.py)                 | Extract linked image filenames from InDesign documents (COM)  |
+| [`apply_pixxio_labels_to_indd.py`](examples/apply_pixxio_labels_to_indd.py)       | Apply PIXXIO labels to InDesign links from a mapping CSV      |
+| [`upload_changed_indd_files.py`](examples/upload_changed_indd_files.py)           | Replace changed InDesign files in PIXXIO via`replaceID`       |
 
 The InDesign scripts require Windows with Adobe InDesign installed; see [examples/AGENTS.md](examples/AGENTS.md) for fixture and safety contracts. Their input files live in `examples/data/`, which is not shipped (it holds real asset filenames) — provide your own inputs.
 
 **Basic File Operations:**
+
 ```python
 # Upload with metadata
 result = files.upload(
@@ -393,6 +413,7 @@ thumbnail = files.download(123, format="JPG", width=200, height=200)
 ```
 
 **Collection Management:**
+
 ```python
 from pixxio_client.collections import Collection
 
@@ -411,13 +432,14 @@ updated = collections.put(collection_id, json_data={
 ```
 
 **Async Batch Operations:**
+
 ```python
 async def process_files():
     files = File(client)
-    
+  
     # Process multiple files concurrently
     file_paths = ["/file1.jpg", "/file2.pdf", "/file3.mp4"]
-    
+  
     tasks = [
         files.async_upload_and_wait(
             path, 
@@ -425,9 +447,9 @@ async def process_files():
             timeout=900
         ) for i, path in enumerate(file_paths)
     ]
-    
+  
     results = await asyncio.gather(*tasks, return_exceptions=True)
-    
+  
     # Handle results
     for i, result in enumerate(results):
         if isinstance(result, Exception):
@@ -442,9 +464,10 @@ asyncio.run(process_files())
 ## 🚧 Development
 
 **Setup Development Environment:**
+
 ```bash
-git clone https://git.claudiapps.de/Hoerl-IM/PixxIO-Client.git
-cd PixxIO-Client
+git clone https://github.com/everleah/pixxio_client.git
+cd pixxio_client
 
 # Create virtual environment
 python -m venv .venv
@@ -460,6 +483,7 @@ pip install -r requirements.txt
 ```
 
 **Build and Test:**
+
 ```bash
 # Compile check all modules
 python -m compileall -q pixxio_client
@@ -472,15 +496,18 @@ build_wheel.bat
 ```
 
 **Release (maintainers):**
-```bash
-# Publish dist/*.whl to the Forgejo package index
-upload_wheel_to_forgejo_pypi.bat
 
-# Mirror the current branch to the claudiapps remote
-git push claudiapps HEAD:main
+```bash
+# Publish dist/*.whl to the internal Forgejo package index
+upload_wheel_to_forgejo_pypi.bat
 ```
 
+Push the release commit to the public GitHub repository, then mirror it to the internal
+remote (`git push claudiapps HEAD:main`). Publishing to PyPI is planned and will use the
+wheel built above.
+
 **Type Checking:**
+
 ```bash
 pip install mypy
 mypy pixxio_client/
@@ -530,15 +557,15 @@ Copyright (c) 2026 everleah.
 ## 🆘 Support
 
 - **Documentation**: See the [API Reference](docs/API_REFERENCE.md) and [Developer Guide](docs/DEVELOPER_GUIDE.md)
-- **Issues**: Open an issue in the [repository](https://git.claudiapps.de/Hoerl-IM/PixxIO-Client/issues)
+- **Issues**: Open an issue in the [repository](https://github.com/everleah/pixxio_client/issues)
 - **PIXXIO Support**: Contact PIXXIO support for API-related questions
 
 ## 🔗 Links
 
 - **PIXXIO Platform**: https://www.pixxio.com
 - **API Documentation**: https://api.pixxio.com/docs
-- **Repository**: https://git.claudiapps.de/Hoerl-IM/PixxIO-Client
-- **Package Index**: https://git.claudiapps.de/api/packages/Hoerl-IM/pypi
+- **Repository**: https://github.com/everleah/pixxio_client
+- **Issues**: https://github.com/everleah/pixxio_client/issues
 
 ---
 

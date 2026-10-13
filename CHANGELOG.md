@@ -19,6 +19,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `webhook_stub` requires `PIXXIO_WEBHOOK_SECRET` instead of falling back to a built-in signing secret.
   - Redacted the `applicationKey` values captured in `event_json_examples/` fixtures.
   - Replaced demo credentials in `docs/TEST_ENVIRONMENT.md` with placeholders.
+  - Anonymized personal data in `event_json_examples/` fixtures and the webhook docs: real user logins, display names and internal user IDs became `demo_*` placeholders.
+  - Removed internal hostnames: test and example hosts now come from `PIXXIO_TEST_HOST` / `PIXXIO_HOST` with no defaults, captured host headers in fixtures were replaced with `webhook.example.com`, and deployment docs use placeholders.
 - Added `.env.example` documenting every supported environment variable.
 
 ### Added
@@ -30,7 +32,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `tests/credentials.py` shared credential lookup and a complete `tests/README.md` inventory.
 
 ### Changed
+- Parameterized `webhook_stub/docker-compose.yml` through a local `.env` (`PIXXIO_WEBHOOK_SECRET`, `STUB_HOST`, `STUB_NETWORK`) and added `webhook_stub/.env.example`; dropped the obsolete compose `version` key.
 - Rewrote `README.md` against the current API surface: all 27 resource classes, payload builders, webhooks, and complete documentation/example/test indexes.
+- Pointed installation, development, repository and issue links at the public GitHub repository; publishing to PyPI is planned.
+- Anchored the `.gitignore` test patterns to the repository root so the test suite under `tests/` is no longer ignored and ships with the source.
 - Documented the Python 3.10+ requirement (the `metadata` module uses PEP 604 union syntax).
 - Added `pywin32` to `requirements.txt`.
 - Turned `docs/README.md` into a real documentation index.

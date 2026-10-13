@@ -7,7 +7,13 @@ import traceback
 from pixxio_client import Client
 from pixxio_client.users import User
 
-TEST_HOST = "hoerl-demo.px.media"
+try:  # direct execution: python tests/<script>.py
+    from credentials import require_test_host
+except ImportError:  # module execution: python -m tests.<module>
+    from tests.credentials import require_test_host
+
+# Only the host is needed; this test intentionally uses an invalid key.
+TEST_HOST = require_test_host()
 
 print("🔍 Testing Invalid Authentication")
 print("=" * 40)

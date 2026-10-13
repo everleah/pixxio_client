@@ -2,14 +2,14 @@
 
 ## Connectivity Issues
 
-### ❌ "Could not resolve host: pixxiostub.claudiapps.de"
+### ❌ "Could not resolve host: <your-stub-host>"
 
 **Symptom**: DNS resolution fails
 
 **Check**:
 ```bash
-nslookup pixxiostub.claudiapps.de
-ping pixxiostub.claudiapps.de
+nslookup <your-stub-host>
+ping <your-stub-host>
 ```
 
 **Fix**:
@@ -39,7 +39,7 @@ docker exec traefik traefik config show
 **Fix**:
 1. Restart container: `docker-compose restart`
 2. Verify Traefik is running: `docker ps | grep traefik`
-3. Check network: `docker network inspect claudiapp-net`
+3. Check network: `docker network inspect <your-traefik-network>`
 
 ---
 
@@ -49,8 +49,8 @@ docker exec traefik traefik config show
 
 **Check certificate**:
 ```bash
-curl -v https://pixxiostub.claudiapps.de/health
-openssl s_client -connect pixxiostub.claudiapps.de:443
+curl -v https://<your-stub-host>/health
+openssl s_client -connect <your-stub-host>:443
 ```
 
 **Fix**:
@@ -70,7 +70,7 @@ openssl s_client -connect pixxiostub.claudiapps.de:443
 **Check endpoint accessibility**:
 ```bash
 # Test from PIXXIO server or externally
-curl -X POST https://pixxiostub.claudiapps.de/webhook \
+curl -X POST https://<your-stub-host>/webhook \
   -H "Content-Type: application/json" \
   -d '{"event":"test","timestamp":"2025-11-11T12:00:00Z"}'
 
@@ -79,7 +79,7 @@ docker exec pixxio-webhook-stub ls /data/webhooks/
 ```
 
 **Diagnose PIXXIO configuration**:
-1. Verify webhook URL in PIXXIO: `https://pixxiostub.claudiapps.de/webhook`
+1. Verify webhook URL in PIXXIO: `https://<your-stub-host>/webhook`
 2. Check webhook is enabled in PIXXIO
 3. Try sending a test webhook from PIXXIO admin
 4. View webhook stub logs: `docker-compose logs webhook-stub`
@@ -88,7 +88,7 @@ docker exec pixxio-webhook-stub ls /data/webhooks/
 1. Correct webhook URL if wrong
 2. Verify network connectivity between PIXXIO and your server
 3. Check firewall/security group allows HTTPS outbound from PIXXIO
-4. Test manually: `curl -X POST https://pixxiostub.claudiapps.de/webhook ...`
+4. Test manually: `curl -X POST https://<your-stub-host>/webhook ...`
 
 ---
 
@@ -216,7 +216,7 @@ docker-compose ps
 
 ---
 
-### ❌ "Cannot find docker network claudiapp-net"
+### ❌ "Cannot find docker network <your-traefik-network>"
 
 **Symptom**: Error when starting container: network not found
 
@@ -226,7 +226,7 @@ docker network ls | grep claudiapp
 ```
 
 **Fix**:
-1. Create network if missing: `docker network create claudiapp-net`
+1. Create network if missing: `docker network create <your-traefik-network>`
 2. Or update `docker-compose.yml` to use internal network instead
 3. Ensure Traefik is running on same network: `docker inspect traefik | grep claudiapp`
 
@@ -284,7 +284,7 @@ docker exec traefik curl http://webhook-stub:5000/health
 ```
 
 **Fix**:
-1. Verify both containers are on `claudiapp-net`: `docker network inspect claudiapp-net`
+1. Verify both containers are on `<your-traefik-network>`: `docker network inspect <your-traefik-network>`
 2. Check firewall rules between containers
 3. Verify port 5000 is exposed in Dockerfile
 
@@ -329,7 +329,7 @@ echo "=== Recent Logs ==="
 docker-compose logs --tail=50 webhook-stub
 
 echo "=== Network ==="
-docker network inspect claudiapp-net
+docker network inspect <your-traefik-network>
 
 echo "=== Storage ==="
 docker exec pixxio-webhook-stub ls -lah /data/webhooks/ | head -10
@@ -342,7 +342,7 @@ docker exec pixxio-webhook-stub ls -lah /data/webhooks/ | head -10
 docker exec pixxio-webhook-stub curl -v http://localhost:5000/health
 
 # From host (if accessible)
-curl -v https://pixxiostub.claudiapps.de/health
+curl -v https://<your-stub-host>/health
 ```
 
 ---

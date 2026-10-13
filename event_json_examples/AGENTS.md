@@ -12,6 +12,8 @@
 - Avoid changing fixture semantics unless parser behavior or API contract requires it.
 - Strip credentials before committing: replace any `applicationKey`, token, secret or
   authorization value with a placeholder (captured payloads otherwise publish live keys).
+- Anonymize personal data before committing: replace real user names, logins and user IDs
+  with neutral `demo_*` placeholders.
 
 ## Work Guidance
 - Add new fixtures as additive changes when introducing new event fields/types.
