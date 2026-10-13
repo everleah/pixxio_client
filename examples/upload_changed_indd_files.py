@@ -26,7 +26,6 @@ from pixxio_client.files import File
 
 
 DEFAULT_HOST = "https://weru.px.media/"
-DEFAULT_API_KEY = "2AoXVLvsT4yJm0Tc5kMuu3Pji12QYNqKV2940RAUG3ojlGp9HVjahwpEjUqZRecy"
 SCRIPT_DIR = Path(__file__).resolve().parent
 DEFAULT_INPUT_DIR = SCRIPT_DIR / "data"
 DEFAULT_CHANGED_TXT = DEFAULT_INPUT_DIR / "apply_pixxio_labels.changed.txt"
@@ -189,7 +188,8 @@ def main() -> None:
     parser.add_argument("--changed-txt", default=str(DEFAULT_CHANGED_TXT))
     parser.add_argument("--assets-csv", default=str(DEFAULT_ASSETS_CSV))
     parser.add_argument("--host", default=os.getenv("PIXXIO_HOST", DEFAULT_HOST))
-    parser.add_argument("--api-key", default=os.getenv("PIXXIO_API_KEY", DEFAULT_API_KEY))
+    parser.add_argument("--api-key", default=os.getenv("PIXXIO_API_KEY"),
+                        help="PIXXIO API key; defaults to the PIXXIO_API_KEY environment variable")
     parser.add_argument("--dry-run", action="store_true")
     parser.add_argument("--limit", type=int, default=None)
     parser.add_argument(
@@ -198,6 +198,8 @@ def main() -> None:
     )
 
     args = parser.parse_args()
+    if not args.api_key:
+        parser.error("--api-key is required (or set the PIXXIO_API_KEY environment variable)")
 
     results, uploaded, missing_local, missing_id = upload_changed_files(
         input_dir=Path(args.input_dir),

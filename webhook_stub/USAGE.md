@@ -21,7 +21,7 @@ PIXXIO sends all webhooks with an `x-hub-signature-256` header containing an HMA
 The webhook secret is set in the environment:
 
 ```bash
-PIXXIO_WEBHOOK_SECRET=PixxIOsecred2525
+PIXXIO_WEBHOOK_SECRET=<your-webhook-secret>
 ```
 
 This must match the secret configured in your PIXXIO webhook settings.

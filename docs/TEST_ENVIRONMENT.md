@@ -6,23 +6,29 @@ This document provides information about the test environment and how to use it 
 
 **Test System URL**: https://hoerl-demo.px.media/
 **API Username**: api_user
-**API Key**: secretapikey!
+**API Key**: not stored in this repository — ask a maintainer for access
 
-### Webhook Configuration (Future Development)
+Credentials are supplied through environment variables (see below) and are never
+committed to the repository.
 
-⚠️ **Note**: Webhook functionality is not yet implemented in the PIXXIO client library, but the test environment provides webhook support for future development:
+### Webhook Configuration
+
+The test environment also delivers webhooks, which can be verified and parsed with
+[`pixxio_client.webhook_parser`](../pixxio_client/webhook_parser.py) and
+[`pixxio_client.webhook_middleware`](../pixxio_client/webhook_middleware.py):
 
 **Webhook Username**: connector_hub
 **Webhook URL**: https://hoerl-demo.px.media/connector_hub_hook
-**Webhook Secret**: CHUBwebhook2025
+**Webhook Secret**: not stored in this repository — ask a maintainer for access
 
-*This webhook endpoint can be used for testing webhook integrations and notifications when webhook functionality is added to the library.*
+Captured payload fixtures are available in [../event_json_examples](../event_json_examples),
+and [webhook_stub/](../webhook_stub/README.md) provides a local receiver for testing.
 
 ## Safety and Usage Guidelines
 
 ⚠️ **Important Notes:**
 - This is a demo/test environment - not for production use
-- API key is shared for testing purposes
+- Credentials are shared on request; never commit them to the repository
 - Be respectful of the shared test environment
 - Don't upload large files unnecessarily
 - Clean up test data when possible
@@ -36,7 +42,7 @@ Create a `.env` file in your project root:
 ```bash
 # .env file (don't commit this to version control)
 PIXXIO_TEST_HOST=hoerl-demo.px.media
-PIXXIO_TEST_API_KEY=secretapikey!
+PIXXIO_TEST_API_KEY=<your-api-key>
 ```
 
 Load with python-dotenv:
@@ -57,7 +63,7 @@ from pixxio_client import Client
 
 # Create test client
 client = Client.create_client(
-    api_key="secretapikey!",
+    api_key="<your-api-key>",
     host="hoerl-demo.px.media"
 )
 
@@ -76,7 +82,7 @@ def test_connection():
     """Test basic connection and authentication."""
     try:
         client = Client.create_client(
-            "secretapikey!",
+            "<your-api-key>",
             "hoerl-demo.px.media"
         )
         
@@ -111,7 +117,7 @@ from pixxio_client.files import File
 def test_file_operations():
     """Test file upload, retrieval, and deletion."""
     client = Client.create_client(
-        "secretapikey!",
+        "<your-api-key>",
         "hoerl-demo.px.media"
     )
     
@@ -167,7 +173,7 @@ from pixxio_client.collections import Collection
 def test_collection_operations():
     """Test collection CRUD operations."""
     client = Client.create_client(
-        "secretapikey!",
+        "<your-api-key>",
         "hoerl-demo.px.media"
     )
     
@@ -223,7 +229,7 @@ from pixxio_client.files import File
 def test_job_tracking():
     """Test job tracking with file upload."""
     client = Client.create_client(
-        "secretapikey!", 
+        "<your-api-key>", 
         "hoerl-demo.px.media"
     )
     
@@ -287,7 +293,7 @@ def test_error_handling():
     
     # Test with valid client
     client = Client.create_client(
-        "secretapikey!",
+        "<your-api-key>",
         "hoerl-demo.px.media"
     )
     files = File(client)
@@ -340,7 +346,7 @@ from pixxio_client.exceptions import *
 
 # Test configuration
 TEST_HOST = "hoerl-demo.px.media"
-TEST_API_KEY = "secretapikey!"
+TEST_API_KEY = "<your-api-key>"
 
 class TestResult:
     def __init__(self, name: str, passed: bool, message: str = ""):
@@ -529,7 +535,7 @@ python integration_tests.py
 from pixxio_client import Client
 
 client = Client.create_client(
-    "secretapikey!",
+    "<your-api-key>",
     "hoerl-demo.px.media"
 )
 
@@ -557,7 +563,7 @@ The test environment provides webhook support for future library enhancements:
 WEBHOOK_CONFIG = {
     "username": "connector_hub", 
     "url": "https://hoerl-demo.px.media/connector_hub_hook",
-    "secret": "CHUBwebhook2025"
+    "secret": "<your-webhook-secret>"
 }
 ```
 

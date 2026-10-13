@@ -26,7 +26,13 @@ STORAGE_DIR = Path(os.environ.get("WEBHOOK_STORAGE_DIR", "/data/webhooks"))
 STORAGE_DIR.mkdir(parents=True, exist_ok=True)
 
 # Webhook Secret for signature verification
-WEBHOOK_SECRET = os.environ.get("PIXXIO_WEBHOOK_SECRET", "PixxIOsecred2525")
+WEBHOOK_SECRET = os.environ.get("PIXXIO_WEBHOOK_SECRET", "")
+if not WEBHOOK_SECRET:
+    raise RuntimeError(
+        "PIXXIO_WEBHOOK_SECRET is not set. Export the webhook signing secret "
+        "before starting the stub; see README_SIGNATURE.md."
+    )
+
 
 # Setup logging
 logging.basicConfig(

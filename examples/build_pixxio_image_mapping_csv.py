@@ -31,7 +31,6 @@ from pixxio_client.files import File
 
 
 DEFAULT_HOST = "https://weru.px.media/"
-DEFAULT_API_KEY = "2AoXVLvsT4yJm0Tc5kMuu3Pji12QYNqKV2940RAUG3ojlGp9HVjahwpEjUqZRecy"
 DEFAULT_INPUT = Path(__file__).resolve().parent / "data" / "used_image_filenames.txt"
 DEFAULT_OUTPUT = Path(__file__).resolve().parent / "data" / "pixxio_image_asset_mapping.csv"
 
@@ -274,11 +273,14 @@ def main() -> None:
         description="Erstellt dateiname->Pixxio Asset CSV (fileID, quality, md5sum)."
     )
     parser.add_argument("--host", default=os.getenv("PIXXIO_HOST", DEFAULT_HOST))
-    parser.add_argument("--api-key", default=os.getenv("PIXXIO_API_KEY", DEFAULT_API_KEY))
+    parser.add_argument("--api-key", default=os.getenv("PIXXIO_API_KEY"),
+                        help="PIXXIO API key; defaults to the PIXXIO_API_KEY environment variable")
     parser.add_argument("--input-file", default=str(DEFAULT_INPUT))
     parser.add_argument("--output-file", default=str(DEFAULT_OUTPUT))
 
     args = parser.parse_args()
+    if not args.api_key:
+        parser.error("--api-key is required (or set the PIXXIO_API_KEY environment variable)")
 
     total, found, downloaded, download_failed = build_mapping_csv(
         host=args.host,

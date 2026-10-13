@@ -3,7 +3,7 @@
 A comprehensive Python client library for the PIXXIO Digital Asset Management (DAM) REST API. This library provides object-oriented access to PIXXIO resources with full async support, type safety, and comprehensive error handling.
 
 [![Python Version](https://img.shields.io/badge/python-3.10+-blue.svg)](https://python.org)
-[![License](https://img.shields.io/badge/license-MIT-green.svg)](#-license)
+[![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 [![API Version](https://img.shields.io/badge/PIXXIO%20API-v1-orange.svg)](https://api.pixxio.com/docs)
 [![Version](https://img.shields.io/badge/version-0.4.2-orange.svg)](CHANGELOG.md)
 
@@ -38,7 +38,9 @@ python -m pip install -r requirements.txt
 
 ## 🧪 Tests
 
-A live PIXXIO test environment (`hoerl-demo.px.media`) is used for integration testing. See **[docs/TEST_ENVIRONMENT.md](docs/TEST_ENVIRONMENT.md)** for credentials, ready-to-run scenarios and safety guidelines for the shared environment.
+A live PIXXIO test environment (`hoerl-demo.px.media`) is used for integration testing. See **[docs/TEST_ENVIRONMENT.md](docs/TEST_ENVIRONMENT.md)** for ready-to-run scenarios and safety guidelines for the shared environment.
+
+Credentials are read from the environment and never committed: set `PIXXIO_TEST_API_KEY` (and optionally `PIXXIO_TEST_HOST`); see [.env.example](.env.example).
 
 **Running the suite:**
 ```bash
@@ -321,7 +323,17 @@ except PIXXIOException as e:
 
 ## ⚙️ Configuration
 
-**Environment Variables:**
+The client takes the API key and host explicitly. Scripts in this repository (tests,
+examples, webhook stub) read them from the environment; see [.env.example](.env.example).
+
+| Variable | Used by | Purpose |
+|----------|---------|---------|
+| `PIXXIO_API_KEY` | your code, `examples/` | API key for the PIXXIO server you target |
+| `PIXXIO_HOST` | your code, `examples/` | Host of that server, e.g. `company.pixxio.com` |
+| `PIXXIO_TEST_API_KEY` | `tests/` | API key for the shared test environment |
+| `PIXXIO_TEST_HOST` | `tests/` | Test host, defaults to `hoerl-demo.px.media` |
+| `PIXXIO_WEBHOOK_SECRET` | `webhook_stub/` | Secret for verifying webhook HMAC-SHA256 signatures |
+
 ```bash
 PIXXIO_API_KEY=your-api-key-here
 PIXXIO_HOST=company.pixxio.com
@@ -363,7 +375,7 @@ result = files.upload_and_wait(
 | [`apply_pixxio_labels_to_indd.py`](examples/apply_pixxio_labels_to_indd.py) | Apply PIXXIO labels to InDesign links from a mapping CSV |
 | [`upload_changed_indd_files.py`](examples/upload_changed_indd_files.py) | Replace changed InDesign files in PIXXIO via `replaceID` |
 
-The InDesign scripts require Windows with Adobe InDesign installed; see [examples/AGENTS.md](examples/AGENTS.md) for fixture and safety contracts.
+The InDesign scripts require Windows with Adobe InDesign installed; see [examples/AGENTS.md](examples/AGENTS.md) for fixture and safety contracts. Their input files live in `examples/data/`, which is not shipped (it holds real asset filenames) — provide your own inputs.
 
 **Basic File Operations:**
 ```python
@@ -511,7 +523,9 @@ See **[Contributing Guidelines](docs/CONTRIBUTING.md)** for detailed information
 
 ## 📄 License
 
-This project is licensed under the MIT License.
+This project is licensed under the MIT License — see the [LICENSE](LICENSE) file for details.
+
+Copyright (c) 2026 everleah.
 
 ## 🆘 Support
 

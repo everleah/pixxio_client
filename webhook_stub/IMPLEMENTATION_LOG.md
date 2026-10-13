@@ -6,7 +6,7 @@
 
 1. **HMAC-SHA256 Signaturprüfung**
    - Alle eingehenden Webhooks müssen den `x-hub-signature-256` Header haben
-   - Signatur wird mit dem Secret `PixxIOsecred2525` verifiziert
+   - Signatur wird mit dem Secret `<your-webhook-secret>` verifiziert
    - Ungültige/fehlende Signaturen werden mit 401 Unauthorized abgelehnt
 
 2. **Code-Änderungen in `app.py`**:
@@ -17,7 +17,7 @@
    - Exception-Handling für HTTPException korrigiert
 
 3. **Umgebungsvariable**:
-   - `PIXXIO_WEBHOOK_SECRET=PixxIOsecred2525` in `docker-compose.yml` gesetzt
+   - `PIXXIO_WEBHOOK_SECRET=<your-webhook-secret>` in `docker-compose.yml` gesetzt
 
 4. **Webhooks speichern jetzt**:
    - `timestamp`: Zeitstempel des Empfangs
@@ -58,7 +58,7 @@ docker exec pixxio-webhook-stub python3 /app/test_webhook_security.py
 
 **PIXXIO konfigurieren:**
 1. Webhook URL: `https://pixxiostub.claudiapps.de/webhook`
-2. Secret: `PixxIOsecred2525`
+2. Secret: `<your-webhook-secret>`
 3. Test-Events senden und im Dashboard prüfen
 
 ### 🔐 Sicherheitsprinzipien implementiert:
@@ -81,4 +81,4 @@ docker exec pixxio-webhook-stub python3 /app/test_webhook_security.py
 
 **Status**: ✅ Production-ready
 **Version**: 2.0 (mit Signaturprüfung)
-**Secret**: PixxIOsecred2525
+**Secret**: <your-webhook-secret>

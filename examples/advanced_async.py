@@ -16,8 +16,11 @@ from pixxio_client.collections import Collection
 from pixxio_client.exceptions import PIXXIOException, JobTimeoutException
 
 # Test environment configuration
-TEST_HOST = "hoerl-demo.px.media"
-TEST_API_KEY = "uDP9XwmExpcR6TTDobtu8qVWYs99WmDou8PTTXM22IdoWZhtO4dh5q2SMZO90F0h"
+# Credentials are read from the environment; see .env.example and docs/TEST_ENVIRONMENT.md.
+TEST_HOST = os.environ.get("PIXXIO_TEST_HOST", "hoerl-demo.px.media")
+TEST_API_KEY = os.environ.get("PIXXIO_TEST_API_KEY", "")
+if not TEST_API_KEY:
+    raise SystemExit("PIXXIO_TEST_API_KEY is not set; see docs/TEST_ENVIRONMENT.md.")
 
 def create_test_file(content: str, suffix: str = '.txt') -> str:
     """Create a temporary test file with given content."""

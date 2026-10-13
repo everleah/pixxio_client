@@ -9,7 +9,7 @@ services:
       - webhook_data:/data/webhooks
     environment:
       - WEBHOOK_STORAGE_DIR=/data/webhooks
-      - PIXXIO_WEBHOOK_SECRET=PixxIOsecred2525
+      - PIXXIO_WEBHOOK_SECRET=${PIXXIO_WEBHOOK_SECRET:?PIXXIO_WEBHOOK_SECRET must be set}
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.webhook-stub.rule=Host(`pixxiostub.claudiapps.de`)"

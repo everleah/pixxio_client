@@ -12,16 +12,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Security
+- Removed all hardcoded credentials from the repository ahead of the open-source release:
+  - Test modules read the API key and host from `PIXXIO_TEST_API_KEY` / `PIXXIO_TEST_HOST` through `tests/credentials.py`.
+  - Example scripts take credentials from `PIXXIO_API_KEY` / `PIXXIO_HOST` and fail with a clear message when neither the CLI flag nor the environment provides them.
+  - `webhook_stub` requires `PIXXIO_WEBHOOK_SECRET` instead of falling back to a built-in signing secret.
+  - Redacted the `applicationKey` values captured in `event_json_examples/` fixtures.
+  - Replaced demo credentials in `docs/TEST_ENVIRONMENT.md` with placeholders.
+- Added `.env.example` documenting every supported environment variable.
+
 ### Added
+- Added the MIT `LICENSE` file and declared the `license` classifier plus `python_requires >= 3.10` in `setup.py`.
 - Real-world InDesign examples: `examples/analyze_indd_links_com.py`, `apply_pixxio_labels_to_indd.py`, `build_pixxio_image_mapping_csv.py`, `download_collection_assets.py` and `upload_changed_indd_files.py`.
 - Webhook payload fixtures in `event_json_examples/` covering file, direct link, metadata, keyword, language, file state, collection, external share, marked-user and license events.
 - `AGENTS.md` documentation contracts for the repository root and each major folder.
 - `.vscode/settings.json` workspace settings and `diagnose_failing_files.py` helper.
+- `tests/credentials.py` shared credential lookup and a complete `tests/README.md` inventory.
 
 ### Changed
 - Rewrote `README.md` against the current API surface: all 27 resource classes, payload builders, webhooks, and complete documentation/example/test indexes.
 - Documented the Python 3.10+ requirement (the `metadata` module uses PEP 604 union syntax).
 - Added `pywin32` to `requirements.txt`.
+- Turned `docs/README.md` into a real documentation index.
 
 ### Removed
 - Removed `push_claudiapps.bat` from version control; it is now covered by the `push_*.bat` entry in `.gitignore`.

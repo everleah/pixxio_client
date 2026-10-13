@@ -54,12 +54,48 @@ python tests/quick_test.py
 - Tests file upload with various options
 - Temporary file creation and cleanup
 
+### `test_upload_with_metadata.py`
+**Upload with metadata** - Exercises standard/custom metadata handling during upload.
+
+### `test_get_single_asset.py`
+**Single asset lookup** - Retrieves the metadata of one asset by ID.
+
+### `test_metadata_standard_requests.py`
+**Raw standard-metadata probe** - Uses `requests` directly against the standard metadata endpoint to compare `responseFields` encodings.
+
+## Offline Unit Tests
+
+These do not need network access or credentials:
+
+### `response_fields_injection_checks.py`
+**Response field injection** - Verifies `responseFields` injection and the opt-out behavior for endpoints that do not support it.
+
+### `test_webhook_parser_generalized.py`
+**Webhook parser** - Verifies the generalized parser against real payload shapes.
+
+```bash
+python -m unittest tests.response_fields_injection_checks tests.test_webhook_parser_generalized -v
+```
+
 ## Test Configuration
 
-All tests use the shared test environment:
-- **Host:** `hoerl-demo.px.media`
-- **API Key:** Configured in each test file
+Credentials are read from the environment and are never stored in the repository
+(see [credentials.py](credentials.py)):
+
+- **Host:** `PIXXIO_TEST_HOST`, defaults to `hoerl-demo.px.media`
+- **API Key:** `PIXXIO_TEST_API_KEY`, required — ask a maintainer for access
 - **Environment:** Live PIXXIO test system
+
+```bash
+# Windows PowerShell
+$env:PIXXIO_TEST_API_KEY = "<key>"
+
+# bash
+export PIXXIO_TEST_API_KEY="<key>"
+```
+
+See [../docs/TEST_ENVIRONMENT.md](../docs/TEST_ENVIRONMENT.md) for details about the
+shared system.
 
 ## Running Tests
 

@@ -165,10 +165,10 @@ secrets.json
 *.key
 *.pem
 
-# Local test files
-test_*.py
-*_test.py
-test_*.sh
+# Local test files (repository root only - the tracked suite lives in tests/)
+/test_*.py
+/*_test.py
+/test_*.sh
 temp/
 tmp/
 examples/data/

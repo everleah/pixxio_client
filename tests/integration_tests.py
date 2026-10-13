@@ -24,8 +24,13 @@ from pixxio_client.exceptions import (
 )
 
 # Test configuration
-TEST_HOST = "hoerl-demo.px.media"
-TEST_API_KEY = "uDP9XwmExpcR6TTDobtu8qVWYs99WmDou8PTTXM22IdoWZhtO4dh5q2SMZO90F0h"
+try:  # direct execution: python tests/<script>.py
+    from credentials import require_api_key, test_host
+except ImportError:  # module execution: python -m tests.<module>
+    from tests.credentials import require_api_key, test_host
+
+TEST_HOST = test_host()
+TEST_API_KEY = require_api_key()
 
 class TestResult:
     def __init__(self, name: str, passed: bool, message: str = "", duration: float = 0.0):
