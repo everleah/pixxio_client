@@ -1,4 +1,4 @@
-# Ignore Forgejo PyPI credentials
+# Ignore local package index credentials
 .pypirc
 # Byte-compiled / optimized / DLL files
 __pycache__/

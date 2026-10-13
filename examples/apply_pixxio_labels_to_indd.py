@@ -11,7 +11,7 @@ For each linked image in each .indd file, sets link labels when a mapping exists
 - pixxio.md5sum
 
 For each .indd document, sets a document label when a mapping exists in
-hoerl_InDesign_Dokumente_assets.csv:
+the document-level assets CSV (passed via --assets-csv):
 - pixxio.fileID
 
 Documents are saved after changes.
@@ -553,14 +553,14 @@ def main() -> None:
     script_dir = Path(__file__).resolve().parent
     default_input = script_dir / "data"
     default_mapping = script_dir / "data" / "pixxio_image_asset_mapping.csv"
-    default_assets = script_dir / "data" / "hoerl_InDesign_Dokumente_assets.csv"
 
     parser = argparse.ArgumentParser(
         description="Setzt Pixxio Labels auf Bildrahmen in INDD-Dateien via COM."
     )
     parser.add_argument("--input-dir", default=str(default_input))
     parser.add_argument("--mapping-csv", default=str(default_mapping))
-    parser.add_argument("--assets-csv", default=str(default_assets))
+    parser.add_argument("--assets-csv", required=True,
+                        help="Document-level assets CSV (id;Dateiname)")
     parser.add_argument("--indesign-version", default="2026")
     parser.add_argument("--recursive", action="store_true")
     parser.add_argument(

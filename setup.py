@@ -6,7 +6,7 @@ setup(name='pixxio_client',
       version='0.4.2',
       description='PIXX!O API Python Client',
       author='Claudius Hansch',
-      author_email='claudius.hansch@hoerl-im.de',
+      author_email='everleah@hansch.info',
       license='MIT',
       classifiers=[
           'License :: OSI Approved :: MIT License',

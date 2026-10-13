@@ -497,14 +497,8 @@ build_wheel.bat
 
 **Release (maintainers):**
 
-```bash
-# Publish dist/*.whl to the internal Forgejo package index
-upload_wheel_to_forgejo_pypi.bat
-```
-
-Push the release commit to the public GitHub repository, then mirror it to the internal
-remote (`git push claudiapps HEAD:main`). Publishing to PyPI is planned and will use the
-wheel built above.
+Push the release commit to the GitHub repository. Publishing to PyPI is planned and will
+use the wheel built above.
 
 **Type Checking:**
 

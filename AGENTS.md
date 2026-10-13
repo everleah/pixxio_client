@@ -34,7 +34,7 @@
 ## Critical Project Notes
 - `setup.py` discovers the package with `find_packages(include=["pixxio_client*"])`; keep that pattern in sync if the package is renamed.
 - Python 3.10+ is required: `metadata.py` uses PEP 604 union syntax in runtime-evaluated annotations.
-- The distribution is published to the internal Forgejo index configured in `.pypirc`; there is no public PyPI release.
+- Wheels are built with `build_wheel.bat`; publishing to PyPI is planned.
 - Invalid API keys currently fail at runtime (no early auth validation).
 - Use `files={"file": file_handle}` with `ResourceUploadMixin` uploads.
 - Use custom exception hierarchy from `exceptions.py` for API error handling.

@@ -20,7 +20,6 @@ from pixxio_client.collections import Collection
 from pixxio_client.files import File
 
 
-DEFAULT_COLLECTION_NAME = "hoerl_InDesign_Dokumente"
 DEFAULT_OUTPUT_DIR = Path(__file__).resolve().parent / "data"
 
 
@@ -291,7 +290,8 @@ def main() -> None:
                         help="PIXXIO host; defaults to the PIXXIO_HOST environment variable")
     parser.add_argument("--api-key", default=os.getenv("PIXXIO_API_KEY"),
                         help="PIXXIO API key; defaults to the PIXXIO_API_KEY environment variable")
-    parser.add_argument("--collection", default=DEFAULT_COLLECTION_NAME)
+    parser.add_argument("--collection", required=True,
+                        help="Name of the PIXXIO collection to download")
     parser.add_argument("--output-dir", default=str(DEFAULT_OUTPUT_DIR))
 
     args = parser.parse_args()

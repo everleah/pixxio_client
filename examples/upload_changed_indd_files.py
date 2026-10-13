@@ -4,7 +4,7 @@ Upload only changed InDesign files back to PIXXIO by replacing existing assets.
 
 Inputs:
 - examples/data/apply_pixxio_labels.changed.txt  (one filename per line)
-- examples/data/hoerl_InDesign_Dokumente_assets.csv (id;Dateiname)
+- an assets CSV (id;Dateiname) produced by download_collection_assets.py
 
 Behavior:
 - Resolve PIXXIO file ID by exact filename match from CSV.
@@ -28,7 +28,6 @@ from pixxio_client.files import File
 SCRIPT_DIR = Path(__file__).resolve().parent
 DEFAULT_INPUT_DIR = SCRIPT_DIR / "data"
 DEFAULT_CHANGED_TXT = DEFAULT_INPUT_DIR / "apply_pixxio_labels.changed.txt"
-DEFAULT_ASSETS_CSV = DEFAULT_INPUT_DIR / "hoerl_InDesign_Dokumente_assets.csv"
 
 
 @dataclass
@@ -185,7 +184,8 @@ def main() -> None:
     )
     parser.add_argument("--input-dir", default=str(DEFAULT_INPUT_DIR))
     parser.add_argument("--changed-txt", default=str(DEFAULT_CHANGED_TXT))
-    parser.add_argument("--assets-csv", default=str(DEFAULT_ASSETS_CSV))
+    parser.add_argument("--assets-csv", required=True,
+                        help="Assets CSV (id;Dateiname) produced by download_collection_assets.py")
     parser.add_argument("--host", default=os.getenv("PIXXIO_HOST"),
                         help="PIXXIO host; defaults to the PIXXIO_HOST environment variable")
     parser.add_argument("--api-key", default=os.getenv("PIXXIO_API_KEY"),

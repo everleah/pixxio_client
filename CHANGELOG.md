@@ -41,7 +41,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Turned `docs/README.md` into a real documentation index.
 
 ### Removed
-- Removed `push_claudiapps.bat` from version control; it is now covered by the `push_*.bat` entry in `.gitignore`.
+- Removed the internal push helper script from version control; it is now covered by the `push_*.bat` entry in `.gitignore`.
 - Trimmed `.github/copilot-instructions.md` down to a pointer at the root `AGENTS.md`.
 
 ## [0.4.2] - 2026-05-08
