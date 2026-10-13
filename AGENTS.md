@@ -32,9 +32,9 @@
 - Keep webhook behavior aligned with docs under `docs/webhook/` and existing tests.
 
 ## Critical Project Notes
-- `setup.py` currently has a package discovery bug:
-  - Current: `find_packages(include=["celum_client*"])`
-  - Expected: `find_packages(include=["pixxio_client*"])`
+- `setup.py` discovers the package with `find_packages(include=["pixxio_client*"])`; keep that pattern in sync if the package is renamed.
+- Python 3.10+ is required: `metadata.py` uses PEP 604 union syntax in runtime-evaluated annotations.
+- The distribution is published to the internal Forgejo index configured in `.pypirc`; there is no public PyPI release.
 - Invalid API keys currently fail at runtime (no early auth validation).
 - Use `files={"file": file_handle}` with `ResourceUploadMixin` uploads.
 - Use custom exception hierarchy from `exceptions.py` for API error handling.

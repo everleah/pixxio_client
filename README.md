@@ -2,51 +2,54 @@
 
 A comprehensive Python client library for the PIXXIO Digital Asset Management (DAM) REST API. This library provides object-oriented access to PIXXIO resources with full async support, type safety, and comprehensive error handling.
 
-[![Python Version](https://img.shields.io/badge/python-3.8+-blue.svg)](https://python.org)
-[![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
+[![Python Version](https://img.shields.io/badge/python-3.10+-blue.svg)](https://python.org)
+[![License](https://img.shields.io/badge/license-MIT-green.svg)](#-license)
 [![API Version](https://img.shields.io/badge/PIXXIO%20API-v1-orange.svg)](https://api.pixxio.com/docs)
+[![Version](https://img.shields.io/badge/version-0.4.2-orange.svg)](CHANGELOG.md)
 
 ## ✨ Features
 
 - **🚀 Full CRUD Operations**: Complete support for Create, Read, Update, Delete operations
-- **📁 File Management**: Upload, download, convert files with progress tracking
+- **🧩 27 Resource Classes**: One class per PIXXIO endpoint, from `File` to `VariantStack`
+- **📁 File Management**: Upload, download and convert files, with job tracking and progress polling
+- **🛠️ Builder Classes**: Fluent builders for create, update, delete and query payloads on every CRUD resource
 - **⚡ Async Support**: Built-in async/await support for non-blocking operations
-- **🔒 Type Safety**: Comprehensive type hints based on OpenAPI specification
+- **🔔 Webhook Parsing**: Schema-agnostic parser for 200+ PIXXIO webhook event types, plus dispatch middleware
+- **🔒 Type Safety**: Comprehensive type hints based on the OpenAPI specification
 - **🛡️ Error Handling**: Specific exceptions for different HTTP status codes and business logic
 - **📊 Job Tracking**: Monitor long-running operations with automatic polling
-- **🎯 Response Filtering**: Optimize API calls by requesting only needed fields
-- **📝 Comprehensive Docs**: Full API reference and examples
+- **🎯 Response Filtering**: Optimize API calls by requesting only needed fields, with automatic suppression on endpoints that do not support it
+- **📄 Pagination**: Transparent paging for list requests, disabled per resource where the endpoint forbids it
 
 ## 📦 Installation
 
+The library is distributed through the internal PIXXIO Forgejo package index (there is no public PyPI release). Add that index as an extra index and install:
+
 ```bash
-pip install pixxio-client
+pip install pixxio_client --extra-index-url https://git.claudiapps.de/api/packages/Hoerl-IM/pypi/simple/
 ```
 
 **Development Installation:**
 ```bash
-git clone https://github.com/your-org/pixxio-client.git
-cd pixxio-client
+git clone https://git.claudiapps.de/Hoerl-IM/PixxIO-Client.git
+cd PixxIO-Client
 python -m pip install -r requirements.txt
 ```
 
-## 🧪 Testing Environment
+## 🧪 Tests
 
-A live test environment is available for testing and development:
+A live PIXXIO test environment (`hoerl-demo.px.media`) is used for integration testing. See **[docs/TEST_ENVIRONMENT.md](docs/TEST_ENVIRONMENT.md)** for credentials, ready-to-run scenarios and safety guidelines for the shared environment.
 
-**📋 [TEST_ENVIRONMENT.md](docs/TEST_ENVIRONMENT.md)** - Complete testing setup guide with:
-- Live demo environment credentials
-- Ready-to-run integration tests  
-- Example test scenarios
-- Safety guidelines for shared testing
-
-**🧪 [tests/](tests/)** - Complete test suite:
+**Running the suite:**
 ```bash
-# Run comprehensive integration tests
+# Comprehensive integration suite
 python tests/integration_tests.py
 
 # Quick functionality test  
 python tests/quick_test.py
+
+# Offline unit tests (no live environment required)
+python -m unittest tests.response_fields_injection_checks tests.test_webhook_parser_generalized -v
 ```
 
 ```python
@@ -54,9 +57,23 @@ python tests/quick_test.py
 from pixxio_client import Client
 
 # See docs/TEST_ENVIRONMENT.md for actual credentials
-client = Client.create_client("your-test-api-key", "test-host.pixxio.com")
+client = Client.create_client("your-test-api-key", "hoerl-demo.px.media")
 print("✅ Connected to test environment!")
 ```
+
+**Test inventory:**
+
+| File | Purpose |
+|------|---------|
+| [`integration_tests.py`](tests/integration_tests.py) | Full integration suite across files, collections, users and jobs |
+| [`quick_test.py`](tests/quick_test.py) | Fast connection and basic-operation smoke test |
+| [`debug_test.py`](tests/debug_test.py), [`debug_integration.py`](tests/debug_integration.py) | Connectivity troubleshooting with verbose raw responses |
+| [`test_auth_error.py`](tests/test_auth_error.py) | Verifies the exception type raised for invalid API keys |
+| [`test_upload_params.py`](tests/test_upload_params.py), [`test_upload_with_metadata.py`](tests/test_upload_with_metadata.py) | Upload parameters and metadata handling |
+| [`test_get_single_asset.py`](tests/test_get_single_asset.py) | Retrieves a single asset's metadata |
+| [`test_metadata_standard_requests.py`](tests/test_metadata_standard_requests.py) | Raw `requests` probe of the standard-metadata endpoint |
+| [`response_fields_injection_checks.py`](tests/response_fields_injection_checks.py) | Unit tests for `responseFields` injection and opt-out behavior |
+| [`test_webhook_parser_generalized.py`](tests/test_webhook_parser_generalized.py) | Webhook parser tests |
 
 ## 🚀 Quick Start
 
@@ -87,7 +104,6 @@ result = files.upload_and_wait(
 )
 ```
 
-
 ## 📚 Documentation
 
 | Document | Description |
@@ -95,18 +111,38 @@ result = files.upload_and_wait(
 | **[API Reference](docs/API_REFERENCE.md)** | Complete API documentation with examples |
 | **[Developer Guide](docs/DEVELOPER_GUIDE.md)** | Architecture, patterns, and contribution guidelines |
 | **[Test Environment](docs/TEST_ENVIRONMENT.md)** | Live test environment setup and integration tests |
-| **[Async Operations](docs/ASYNC_OPERATIONS.md)** | Job tracking and async operation examples |
+| **[Async Operations](docs/ASYNC_OPERATIONS.md)** | Asynchronous interfaces and job-tracking patterns |
+| **[Async Jobs](docs/ASYNC_JOBS.md)** | Deep dive into the async job-tracking implementation |
 | **[Error Handling](docs/ERROR_HANDLING.md)** | Exception types and error handling patterns |
 | **[Type System](docs/TYPE_SYSTEM.md)** | Type hints and custom types documentation |
-| **[Metadata Builders](docs/METADATA_BUILDERS.md)** | How to use builder classes for standard and custom metadata |
+| **[Metadata Builders](docs/METADATA_BUILDERS.md)** | Builders for standard and custom metadata payloads |
+| **[Webhook Quick Start](docs/webhook/QUICK_START.md)** | Five-minute introduction to webhook parsing |
+| **[Webhook Implementation](docs/webhook/PARSER_IMPLEMENTATION.md)** | Webhook parser architecture and usage patterns |
+| **[Webhook Examples](docs/webhook/USAGE_EXAMPLES.md)** | Practical webhook handling examples |
+| **[Contributing](docs/CONTRIBUTING.md)** | Contribution workflow and code standards |
 
-## 🏷️ Metadata Builder Classes
+## 🏷️ Builder Classes
 
-The client provides builder classes to simplify the construction of metadata payloads for both standard and custom metadata fields. These builders ensure correct formatting and type handling for all field types, including text, date, selection, and multiselection.
+Every CRUD resource ships fluent builders for its payloads, so query parameters and form fields never have to be assembled by hand.
+
+```python
+from pixxio_client.collections import Collection, CollectionCreateBuilder, CollectionUpdateBuilder
+
+collections = Collection(client)
+
+# Build the payload, then create/update through the convenience methods
+new_collection = collections.create(**CollectionCreateBuilder().name("Marketing Assets").build())
+collections.update(new_collection.id, **CollectionUpdateBuilder().description("Campaign assets").build())
+```
+
+Resources with payload builders: `Collection`, `DirectLink`, `Directory`, `ExternalShare`, `File`, `License`, `LicenseRelease`, `Model`, `ModelRelease`, `Property`, `PropertyRelease`, `UploadLink`, `User` and `VariantStack`.
+
+### Metadata builders
+
+`StandardMetadataBuilder` and `CustomMetadataBuilder` format metadata values for all field types (text, date, selection, multiselection) and resolve field IDs and selection options from the API.
 
 See [docs/METADATA_BUILDERS.md](docs/METADATA_BUILDERS.md) for full usage examples.
 
-**Example:**
 ```python
 from pixxio_client.metadata import StandardMetadataBuilder, CustomMetadataBuilder
 
@@ -119,51 +155,123 @@ custom_builder.add("Produktbereich", [98765])
 custom_metadata_payload = custom_builder.build()
 ```
 
+### Convenience methods
+
+CRUD resources also expose `list()`, `create()`, `update()` and `delete()` shortcuts on top of the low-level `get()`, `post()`, `put()` and `delete()` methods.
+
+```python
+collections.list()                             # alias for get() with paging defaults
+collections.create(name="New Collection")      # wraps post(form_data=...)
+collections.update(42, name="Renamed")         # wraps put(id, form_data=...)
+collections.delete(42)                         # single id
+collections.delete(ids=[1, 2, 3])              # multiple ids
+```
+
 ## 🏗️ Architecture Overview
 
 The library follows a resource-based architecture with mixin patterns:
 
-```python
-# Base hierarchy
-ReadOnlyResourceBase          # GET operations
-└── ResourceBase              # + POST, PUT, DELETE
-    ├── ResourceUploadMixin   # + file upload capability
-    └── ResourceJobMixin      # + async job tracking
+```text
+ReadOnlyResourceBase            # GET operations
+└── ResourceBase                # + POST, PUT, DELETE
+    ├── ResourceUploadMixin     # + upload()          → File, Keyword
+    └── ResourceJobMixin        # + post_and_wait()   → File
 ```
 
+`File` combines all three: `class File(ResourceBase, ResourceUploadMixin, ResourceJobMixin)`, while read-only resources (for example `FileState`, `Portal`) stop at `ReadOnlyResourceBase`.
+
 **Core Components:**
-- **Client**: Session management and authentication
-- **Authentication**: Bearer token handling
-- **Resources**: API endpoint classes (File, Collection, User, etc.)
-- **Mixins**: Reusable functionality for uploads and job tracking
-- **Types**: Comprehensive type system based on OpenAPI spec
+- **Client**: Session management, host/base-URL construction and logging
+- **Authentication**: Bearer token handling and request headers
+- **Resources**: One class per endpoint (File, Collection, User, …)
+- **Mixins**: `ResourceUploadMixin` for file uploads, `ResourceJobMixin` for `post_and_wait`
+- **Builders**: Payload builders per resource plus the metadata builders
+- **Types**: Comprehensive type system based on the OpenAPI spec
+- **WebhookParser**: Schema-agnostic parsing of inbound PIXXIO webhook payloads
+- **WebhookDispatcher**: Routes parsed events to registered handlers
 
 ## 📋 Available Resources
 
-All resources support standard CRUD operations. Special capabilities marked with icons:
+One class per PIXXIO endpoint. `Upload 📁` marks `ResourceUploadMixin` support, `Jobs ⚡` marks job tracking (`ResourceJobMixin` or the `Job` helpers).
 
-| Resource | Endpoints | Upload 📁 | Jobs ⚡ | Description |
-|----------|-----------|-----------|---------|-------------|
-| **File** | `/files` | ✅ | ✅ | File upload, download, conversion |
+### Read/write resources
+
+| Resource | Endpoint | Upload 📁 | Jobs ⚡ | Description |
+|----------|----------|-----------|---------|-------------|
+| **File** | `/files` | ✅ | ✅ | Asset upload, download, conversion, bulk update and delete |
 | **Collection** | `/collections` | ❌ | ❌ | Asset collections and organization |
+| **Directory** | `/directories` | ❌ | ❌ | Folder structure, including `get_tree()` |
+| **Keyword** | `/keywords` | ✅ | ❌ | Keyword management and CSV export |
+| **Synonym** | `/synonyms` | ✅ | ❌ | Synonyms per keyword column (extends `Keyword`) |
 | **User** | `/users` | ❌ | ❌ | User management |
-| **Directory** | `/directories` | ❌ | ❌ | Folder structure |
-| **Job** | `/jobs` | ❌ | ✅ | Job status tracking |
-| **Keyword** | `/keywords` | ❌ | ❌ | Keyword management |
-| **License** | `/licenses` | ❌ | ❌ | License information |
+| **License** | `/licenses` | ❌ | ❌ | License definitions |
+| **LicenseRelease** | `/licenseReleases` | ❌ | ❌ | License releases on assets |
+| **Model** | `/models` | ❌ | ❌ | Model definitions |
+| **ModelRelease** | `/modelReleases` | ❌ | ❌ | Model releases on assets |
+| **Property** | `/properties` | ❌ | ❌ | Property definitions |
+| **PropertyRelease** | `/propertyReleases` | ❌ | ❌ | Property releases on assets |
+| **VariantStack** | `/variantStacks` | ❌ | ❌ | Variant stacks grouping file versions |
+| **UploadLink** | `/uploadLinks` | ❌ | ❌ | Guest upload links |
+| **DirectLink** | `/directLinks` | ❌ | ❌ | Direct share links |
+| **ExternalShare** | `/externalShares` | ❌ | ❌ | External shares |
+| **StandardMetadata** | `/metadata/standard` | ❌ | ❌ | Standard metadata fields |
+| **CustomMetadata** | `/metadata/custom` | ❌ | ❌ | Custom metadata fields |
+
+### Read-only resources
+
+| Resource | Endpoint | Description |
+|----------|----------|-------------|
+| **Job** | `/jobs` | Job status, `wait_for_completion()`, `async_wait_for_completion()`, `abort()` |
+| **Portal** | `/portals` | Portal list and details |
+| **PortalPage** | `/portals/{id}/pages` | Pages inside a portal |
+| **PortalUser** | `/portals/{id}/users` | Current or specific portal user |
+| **FileState** | `/fileStates` | File state definitions |
+| **DownloadFormat** | `/downloadFormats` | Supported download formats |
+| **PermissionGroup** | `/permissionGroups` | Permission groups |
+| **ImportantMetadata** | `/metadata/important` | Important metadata fields |
+| **InternalMetadata** | `/metadata/internal` | Internal metadata fields |
 
 **Example usage:**
 ```python
 from pixxio_client.collections import Collection
 from pixxio_client.users import User
+from pixxio_client.variantstacks import VariantStack
 
 collections = Collection(client)
 users = User(client)
+variant_stacks = VariantStack(client)
 
 # Standard operations work across all resources
 my_collections = collections.get()
 user_info = users.get(user_id)
 ```
+
+### Pagination
+
+List requests page automatically for endpoints that support it. Paging is disabled per resource via the `_paged` flag for endpoints that do not: `DownloadFormat`, `FileState`, `LicenseRelease`, `ModelRelease`, `Portal`, `PropertyRelease` (and the `PortalPage` / `PortalUser` sub-endpoints).
+
+## 🔔 Webhooks
+
+`WebhookParser` handles the full range of PIXXIO webhook events through a single schema-agnostic `EventData` class, so new event types work without client changes.
+
+```python
+from pixxio_client import WebhookParser
+
+parser = WebhookParser()
+events = parser.parse_webhook(webhook_json)
+
+for event in events:
+    print(f"{event.event_key} ({event.action}) on {event.resource}")
+    print(f"User: {event.user.email}")
+
+    # Event data is available in both snake_case and camelCase
+    if hasattr(event.data, "new_text"):
+        print(f"Changed to: {event.data.new_text}")
+```
+
+**Public exports:** `WebhookParser`, `WebhookEvent`, `EventData`, `EventAction`, `ResourceType`, `EventKey` and the `parse_pixxio_webhook()` convenience function. For HTTP integrations, [`pixxio_client.webhook_middleware`](pixxio_client/webhook_middleware.py) provides `WebhookDispatcher`, `WebhookEventHandler` and `WebhookResponse`.
+
+**Docs & fixtures:** [docs/webhook/](docs/webhook/README.md) (quick start, implementation guide, examples) and [event_json_examples/](event_json_examples) for real payload fixtures.
 
 ## 🔄 Async Operations
 
@@ -238,13 +346,23 @@ result = files.upload_and_wait(
 )
 ```
 
-## 🧪 Examples
+## 📁 Examples
 
-**📁 [examples/](examples/)** - Complete example collection:
-- `basic_usage.py` - Core functionality demonstrations
-- `advanced_async.py` - Concurrent operations and async patterns
-- `async_jobs.py` - Job tracking and monitoring examples  
-- `error_handling.py` - Exception handling patterns
+**📁 [examples/](examples/)** - Runnable example collection:
+
+| Script | Purpose |
+|--------|---------|
+| [`basic_usage.py`](examples/basic_usage.py) | Core functionality, collections and builders |
+| [`advanced_async.py`](examples/advanced_async.py) | Concurrent operations and async job tracking |
+| [`async_jobs.py`](examples/async_jobs.py) | Job tracking and monitoring |
+| [`error_handling.py`](examples/error_handling.py) | Exception handling patterns |
+| [`download_collection_assets.py`](examples/download_collection_assets.py) | Download every asset of a collection into an `id;filename` CSV |
+| [`build_pixxio_image_mapping_csv.py`](examples/build_pixxio_image_mapping_csv.py) | Build a filename → asset mapping CSV for InDesign workflows |
+| [`analyze_indd_links_com.py`](examples/analyze_indd_links_com.py) | Extract linked image filenames from InDesign documents (COM) |
+| [`apply_pixxio_labels_to_indd.py`](examples/apply_pixxio_labels_to_indd.py) | Apply PIXXIO labels to InDesign links from a mapping CSV |
+| [`upload_changed_indd_files.py`](examples/upload_changed_indd_files.py) | Replace changed InDesign files in PIXXIO via `replaceID` |
+
+The InDesign scripts require Windows with Adobe InDesign installed; see [examples/AGENTS.md](examples/AGENTS.md) for fixture and safety contracts.
 
 **Basic File Operations:**
 ```python
@@ -312,8 +430,8 @@ asyncio.run(process_files())
 
 **Setup Development Environment:**
 ```bash
-git clone https://github.com/your-org/pixxio-client.git
-cd pixxio-client
+git clone https://git.claudiapps.de/Hoerl-IM/PixxIO-Client.git
+cd PixxIO-Client
 
 # Create virtual environment
 python -m venv .venv
@@ -331,14 +449,27 @@ pip install -r requirements.txt
 **Build and Test:**
 ```bash
 # Compile check all modules
-python -m py_compile pixxio_client/*.py
+python -m compileall -q pixxio_client
 
-# Build wheel
-./build_wheel.bat  # Windows
+# Run the offline unit tests
+python -m unittest tests.response_fields_injection_checks tests.test_webhook_parser_generalized -v
+
+# Build a wheel into dist/ (Windows)
+build_wheel.bat
+```
+
+**Release (maintainers):**
+```bash
+# Publish dist/*.whl to the Forgejo package index
+upload_wheel_to_forgejo_pypi.bat
+
+# Mirror the current branch to the claudiapps remote
+push_claudiapps.bat
 ```
 
 **Type Checking:**
 ```bash
+pip install mypy
 mypy pixxio_client/
 ```
 
@@ -367,31 +498,32 @@ See **[Contributing Guidelines](docs/CONTRIBUTING.md)** for detailed information
 
 ## 📋 Requirements
 
-- **Python**: 3.8 or higher
-- **Dependencies**: 
+- **Python**: 3.10 or higher (`metadata.py` uses PEP 604 union syntax)
+- **Dependencies**:
   - `requests` - HTTP client
   - `python-dateutil` - Date parsing
   - `pytz` - Timezone handling
   - `dateparser` - Flexible date parsing
   - `requests-toolbelt` - File upload utilities
+  - `wheel` - Building distribution wheels
+  - `pywin32` - Windows-only COM support (InDesign examples)
 
 ## 📄 License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+This project is licensed under the MIT License.
 
 ## 🆘 Support
 
-- **Documentation**: Check the [API Reference](docs/API_REFERENCE.md) and [Developer Guide](docs/DEVELOPER_GUIDE.md)
-- **Issues**: Use GitHub Issues for bug reports and feature requests
+- **Documentation**: See the [API Reference](docs/API_REFERENCE.md) and [Developer Guide](docs/DEVELOPER_GUIDE.md)
+- **Issues**: Open an issue in the [repository](https://git.claudiapps.de/Hoerl-IM/PixxIO-Client/issues)
 - **PIXXIO Support**: Contact PIXXIO support for API-related questions
-- **Community**: Join discussions in GitHub Discussions
 
 ## 🔗 Links
 
 - **PIXXIO Platform**: https://www.pixxio.com
 - **API Documentation**: https://api.pixxio.com/docs
-- **Python Package**: https://pypi.org/project/pixxio-client/
-- **Repository**: https://github.com/your-org/pixxio-client
+- **Repository**: https://git.claudiapps.de/Hoerl-IM/PixxIO-Client
+- **Package Index**: https://git.claudiapps.de/api/packages/Hoerl-IM/pypi
 
 ---
 
