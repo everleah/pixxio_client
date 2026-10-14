@@ -23,19 +23,19 @@ A comprehensive Python client library for the PIXXIO Digital Asset Management (D
 
 ## 📦 Installation
 
+**From PyPI (Python 3.10+):**
+
+```bash
+python -m pip install pixxio-client
+```
+
 **From GitHub:**
 
 ```bash
 pip install git+https://github.com/everleah/pixxio_client.git
 ```
 
-**PyPI (planned):** once the public release lands, the usual
-
-```bash
-pip install pixxio_client
-```
-
-will work.
+The distribution name is `pixxio-client`; Python imports remain `pixxio_client`.
 
 **Development Installation:**
 
@@ -497,8 +497,51 @@ build_wheel.bat
 
 **Release (maintainers):**
 
-Push the release commit to the GitHub repository. Publishing to PyPI is planned and will
-use the wheel built above.
+Version `0.4.2` is the first public PyPI release. For subsequent releases, update the
+version in `setup.py`, the version badge above, and `CHANGELOG.md`. Run the offline
+tests and verify the installed package before publishing; PyPI does not allow
+replacing an uploaded distribution with different contents.
+
+Install the release tools in the existing development environment:
+
+```powershell
+.\.venv\Scripts\python.exe -m pip install -r requirements-release.txt
+```
+
+Store a PyPI API token once, outside the repository, encrypted with Windows DPAPI.
+Enter the token at the password prompt (username must be `__token__`):
+
+```powershell
+$tokenPath = Join-Path $env:APPDATA 'pixxio_client\pypi-token.xml'
+New-Item -ItemType Directory -Path (Split-Path $tokenPath) -Force | Out-Null
+Get-Credential -UserName '__token__' -Message 'PyPI API token' |
+    Export-Clixml -LiteralPath $tokenPath
+```
+
+Only the same Windows user on the same computer can decrypt this credential.
+After the first upload, replace the account-wide token with a token scoped to
+`pixxio-client` using the same command, and revoke the old token on PyPI.
+Never commit credentials or paste tokens into scripts.
+
+```powershell
+# Build and validate without uploading or requiring a token
+.\publish_pypi.ps1 -BuildOnly
+
+# Build, validate, and publish to the real PyPI
+.\publish_pypi.ps1
+```
+
+The publisher runs the offline unit tests, builds a wheel and source distribution
+in a fresh temporary directory, and runs `twine check --strict`. Verified artifacts
+are retained in `build_output\pypi`; only the freshly built files are uploaded.
+Every failed step stops publication. Use `-Python` or `-TokenPath` to override the
+interpreter or encrypted credential file. Release tools must already be installed.
+The script is run from the repository checkout (it needs the offline tests);
+the source distribution contains the library, not the repository test suite.
+
+Push the release commit and a matching version tag to GitHub after verification.
+The existing Forgejo build/upload scripts and their `.pypirc` remain independent
+and unchanged; the PyPI publisher does not read or overwrite Forgejo credentials.
 
 **Type Checking:**
 

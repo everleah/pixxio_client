@@ -12,6 +12,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.4.2] - 2026-10-14
+
+First public PyPI release. Includes the earlier internal `0.4.2` changes and the
+public-release preparation below.
+
 ### Security
 - Removed all hardcoded credentials from the repository ahead of the open-source release:
   - Test modules read the API key and host from `PIXXIO_TEST_API_KEY` / `PIXXIO_TEST_HOST` through `tests/credentials.py`.
@@ -24,7 +29,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added `.env.example` documenting every supported environment variable.
 
 ### Added
-- Added the MIT `LICENSE` file and declared the `license` classifier plus `python_requires >= 3.10` in `setup.py`.
+- Added the MIT `LICENSE` file and declared `python_requires >= 3.10` in `setup.py`.
+- Added a PEP 517 build configuration, PyPI README/Markdown description, repository and documentation links, search keywords, and SPDX MIT license metadata.
+- Added `publish_pypi.ps1` and `requirements-release.txt` for validated wheel/source builds and PyPI uploads using an encrypted local Windows credential; Forgejo publishing remains unchanged.
 - Real-world InDesign examples: `examples/analyze_indd_links_com.py`, `apply_pixxio_labels_to_indd.py`, `build_pixxio_image_mapping_csv.py`, `download_collection_assets.py` and `upload_changed_indd_files.py`.
 - Webhook payload fixtures in `event_json_examples/` covering file, direct link, metadata, keyword, language, file state, collection, external share, marked-user and license events.
 - `AGENTS.md` documentation contracts for the repository root and each major folder.
@@ -34,8 +41,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - Parameterized `webhook_stub/docker-compose.yml` through a local `.env` (`PIXXIO_WEBHOOK_SECRET`, `STUB_HOST`, `STUB_NETWORK`) and added `webhook_stub/.env.example`; dropped the obsolete compose `version` key.
 - Rewrote `README.md` against the current API surface: all 27 resource classes, payload builders, webhooks, and complete documentation/example/test indexes.
-- Pointed installation, development, repository and issue links at the public GitHub repository; publishing to PyPI is planned.
-- Anchored the `.gitignore` test patterns to the repository root so the test suite under `tests/` is no longer ignored and ships with the source.
+- Pointed installation, development, repository and issue links at the public GitHub repository and documented installation from PyPI.
+- Anchored the `.gitignore` test patterns to the repository root so the test suite under `tests/` is no longer ignored in Git; distribution archives contain the library rather than the repository tests.
 - Documented the Python 3.10+ requirement (the `metadata` module uses PEP 604 union syntax).
 - Added `pywin32` to `requirements.txt`.
 - Turned `docs/README.md` into a real documentation index.
@@ -44,12 +51,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Removed the internal push helper script from version control; it is now covered by the `push_*.bat` entry in `.gitignore`.
 - Trimmed `.github/copilot-instructions.md` down to a pointer at the root `AGENTS.md`.
 
-## [0.4.2] - 2026-05-08
-
 ### Fixed
-- List requests no longer send pagination parameters to endpoints that do not support them.
 
-### Changed
+- List requests no longer send pagination parameters to endpoints that do not support them.
 - `ReadOnlyResourceBase` gained opt-out pagination handling through the `_paged` flag.
 - Disabled pagination for `DownloadFormat`, `FileState`, `LicenseRelease`, `ModelRelease`, `Portal` and `PropertyRelease`.
 

@@ -34,7 +34,10 @@
 ## Critical Project Notes
 - `setup.py` discovers the package with `find_packages(include=["pixxio_client*"])`; keep that pattern in sync if the package is renamed.
 - Python 3.10+ is required: `metadata.py` uses PEP 604 union syntax in runtime-evaluated annotations.
-- Wheels are built with `build_wheel.bat`; publishing to PyPI is planned.
+- Version `0.4.2` is the first public PyPI release. `setup.py` owns the version and package metadata; `pyproject.toml` declares the isolated setuptools build.
+- Publish to PyPI with `publish_pypi.ps1` (`-BuildOnly` for offline tests, build, and strict metadata checks without uploading). Install release tools from `requirements-release.txt`; artifacts are retained in ignored `build_output/pypi/`.
+- Keep PyPI credentials outside the repository in `%APPDATA%\pixxio_client\pypi-token.xml` (Windows DPAPI-encrypted PSCredential, username `__token__`). Never embed tokens in source or release scripts.
+- Keep the existing Forgejo build/upload scripts and `.pypirc` independent and unchanged when updating PyPI publishing.
 - Invalid API keys currently fail at runtime (no early auth validation).
 - Use `files={"file": file_handle}` with `ResourceUploadMixin` uploads.
 - Use custom exception hierarchy from `exceptions.py` for API error handling.
