@@ -13,7 +13,7 @@ README = re.sub(
 )
 
 setup(name='pixxio_client',
-      version='0.4.2',
+      version='0.4.3',
       description='PIXX!O API Python Client',
       long_description=README,
       long_description_content_type='text/markdown',

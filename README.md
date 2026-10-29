@@ -5,7 +5,7 @@ A comprehensive Python client library for the PIXXIO Digital Asset Management (D
 [![Python Version](https://img.shields.io/badge/python-3.10+-blue.svg)](https://python.org)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 [![API Version](https://img.shields.io/badge/PIXXIO%20API-v1-orange.svg)](https://api.pixxio.com/docs)
-[![Version](https://img.shields.io/badge/version-0.4.2-orange.svg)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-0.4.3-orange.svg)](CHANGELOG.md)
 
 ## ✨ Features
 
@@ -87,6 +87,7 @@ print("✅ Connected to test environment!")
 | [`test_metadata_standard_requests.py`](tests/test_metadata_standard_requests.py)                                             | Raw`requests` probe of the standard-metadata endpoint            |
 | [`response_fields_injection_checks.py`](tests/response_fields_injection_checks.py)                                           | Unit tests for`responseFields` injection and opt-out behavior    |
 | [`test_webhook_parser_generalized.py`](tests/test_webhook_parser_generalized.py)                                             | Webhook parser tests                                             |
+| [`test_bulk_editing_support.py`](tests/test_bulk_editing_support.py)                                                         | Offline tests for pagination, structured parameters, updates, metadata paging and retries |
 
 ## 🚀 Quick Start
 
@@ -103,8 +104,11 @@ files = File(client)
 # Upload a file
 result = files.upload("/path/to/image.jpg", title="My Image")
 
-# Get all files
-all_files = files.get()
+# Get the first page of files
+first_page = files.get()
+
+# Load all pages into a list (use iter_all() for lazy loading)
+all_files = files.get_all()
 
 # Get specific file
 file_info = files.get(123)
@@ -267,19 +271,42 @@ user_info = users.get(user_id)
 
 ### Pagination
 
-List requests page automatically for endpoints that support it (default: first page, 50 items). Paging is disabled per resource via the `_paged` flag for endpoints that do not: `DownloadFormat`, `FileState`, `LicenseRelease`, `ModelRelease`, `Portal`, `PropertyRelease` (and the `PortalPage` / `PortalUser` sub-endpoints).
+List requests include paging parameters for endpoints that support them (default: first page, 50 items); `get()` returns only that page. Paging is disabled per resource via the `_paged` flag for endpoints that do not: `DownloadFormat`, `FileState`, `LicenseRelease`, `ModelRelease`, `Portal`, `PropertyRelease` (and the `PortalPage` / `PortalUser` sub-endpoints).
 
 To load every page, use `iter_all()` (lazy generator) or `get_all()` (list). They stop at the reported `quantity`, at a short page, or after `max_items`:
 
 ```python
 files = File(client)
-for file in files.iter_all(page_size=200, filter={"filterType": "fileName", "term": "cat"}):
+for file in files.iter_all(page_size=200, filter={
+    "filterType": "collection",
+    "collectionID": 123,
+    "includeArchived": False,
+}):
     print(file.id, file.fileName)
+
+from pixxio_client.metadata import CustomMetadata
 
 all_fields = CustomMetadata(client).get_all()
 ```
 
 Object-valued parameters such as `filter` are JSON-encoded automatically, for GET and DELETE query strings as well as `File.update()` form fields.
+
+### Bulk updates
+
+`File.update_and_wait()` handles both direct update responses and background jobs:
+
+```python
+result = files.update_and_wait(
+    ids=[4711, 4712],
+    subject="Updated title",
+    timeout=900,
+)
+```
+
+All selected IDs receive the **same values**. For different values per asset, send
+separate updates or group IDs with identical payloads. The client does not calculate
+cell-level differences or detect editing conflicts; callers must submit only the
+intended changes. A failed background job raises `JobFailedException`.
 
 ## 🔔 Webhooks
 
