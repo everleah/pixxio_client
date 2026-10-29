@@ -47,6 +47,9 @@ client = Client.create_client("api-key", "company.pixxio.com")
 # Direct instantiation
 auth = Authentication("api-key")
 client = Client(auth, "company.pixxio.com", version="v1")
+
+# Opt-in retries for GET/PUT/DELETE on 429/503 and connection errors
+client = Client.create_client("api-key", "company.pixxio.com", max_retries=3)
 ```
 
 **Properties:**
@@ -55,8 +58,10 @@ client = Client(auth, "company.pixxio.com", version="v1")
 - `logger` - Logging instance
 
 **Methods:**
-- `create_client(api_key, host, ...)` - Factory method for client creation
+- `create_client(api_key, host, max_retries=0, retry_backoff_factor=1.0)` - Factory method for client creation
 - `reset()` - Reset session, force re-authentication
+
+`max_retries` is disabled by default. When enabled, `Retry-After` headers are respected, read timeouts are not retried, and POST requests are never retried.
 
 ## Base Classes
 
@@ -71,9 +76,13 @@ Foundation for read-only API resources.
 - Logging integration
 
 **Methods:**
-- `get(id=None, **params)` - Get resource(s) by ID or list all
+- `get(id=None, **params)` - Get resource(s) by ID or list one page (default `page=1`, `pageSize=50`)
+- `iter_all(page_size=100, max_items=None, **params)` - Lazily iterate over all pages of a list endpoint
+- `get_all(page_size=100, max_items=None, **params)` - `iter_all()` collected into a list
 - `set_response_fields(fields)` - Configure field filtering
 - `set_response_field(field)` - Add single field to filter
+
+Object-valued parameters (for example `filter`) are JSON-encoded automatically in GET and DELETE query strings. `iter_all()` reads the list attribute named by the class attribute `_list_response_key` (for example `files`, `customMetadata`) or auto-detects the single list attribute of the response.
 
 ### ResourceBase
 
@@ -126,6 +135,17 @@ files.update(
         .keywords_to_add(["campaign", "2024"])
         .build()
 )
+
+# Update and wait for the background job (the API starts one only for >1 file)
+job = files.update_and_wait(
+    ids=[100, 101],
+    metadataCustom=[{"action": "replace", "id": 7, "value": "Summer"}],
+    timeout=600,
+)
+
+# Load all files matching a filter (JSON-encoded automatically)
+for file in files.iter_all(page_size=200, filter={"filterType": "rating", "rating": 5}):
+    print(file.id, file.metadataFields)
 
 # Delete by IDs or filter
 files.delete(

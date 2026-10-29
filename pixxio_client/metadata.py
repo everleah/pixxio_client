@@ -5,6 +5,7 @@ from ._base import ResourceBase, ReadOnlyResourceBase
 
 class CustomMetadata(ResourceBase):
     _paged: bool = True
+    _list_response_key = "customMetadata"
     _response_field_filter = [ "id", "createDate", "modifyDate", "name", "editType", "selectionOptions", "translationState"]
     NAME = "metadata/custom"
 
@@ -212,7 +213,7 @@ class CustomMetadataBuilder(MetadataValueBuilder):
     def __init__(self, client):
         custom_meta = CustomMetadata(client)
         custom_meta.set_response_fields(["id", "name", "editType", "selectionOptions"])
-        metadata_fields_info = getattr(custom_meta.get(), "customMetadata", [])
+        metadata_fields_info = custom_meta.get_all()
         super().__init__(metadata_fields_info)
         
 class StandardMetadataBuilder(MetadataValueBuilder):

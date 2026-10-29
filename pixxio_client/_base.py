@@ -1,7 +1,7 @@
 import json
 import logging
 from contextlib import contextmanager
-from typing import Literal, Optional, Dict, Any, Union, List, IO, TYPE_CHECKING
+from typing import Literal, Optional, Dict, Any, Union, List, IO, Iterator, TYPE_CHECKING
 
 from types import SimpleNamespace
 from json import JSONEncoder
@@ -15,6 +15,27 @@ from .pixxio_types import (
 
 if TYPE_CHECKING:
     from . import Client
+
+
+def encode_structured_params(params: Dict[str, Any]) -> Dict[str, Any]:
+    """
+    JSON-encode object-valued parameters for query strings and form fields.
+
+    The PIXXIO API expects object parameters such as ``filter``, ``location``
+    or metadata maps as JSON strings (for example
+    ``?filter={"filterType": "fileName", ...}``). Dicts and lists containing
+    dicts are encoded; scalars, plain lists and pre-encoded strings are kept.
+    """
+    encoded: Dict[str, Any] = {}
+    for key, value in params.items():
+        if isinstance(value, dict) or (
+            isinstance(value, (list, tuple)) and any(isinstance(item, dict) for item in value)
+        ):
+            encoded[key] = json.dumps(value)
+        else:
+            encoded[key] = value
+    return encoded
+
 
 class _ResponseObject(SimpleNamespace):
     """
@@ -170,6 +191,7 @@ class ReadOnlyResourceBase:
         ```
     """
     _paged: bool = True
+    _list_response_key: Optional[str] = None  # list attribute of list responses; auto-detected if None
     _response_field_filter = None  # type: Optional[List[str] | Dict[str, Optional[List[str]]]]
     _get_single_response_cls: type = _ResponseObject 
     _get_list_response_cls: type = _ResponseObject      
@@ -378,7 +400,9 @@ class ReadOnlyResourceBase:
             if 'pageSize' not in params:
                 params['pageSize'] = 50  # Default page size
                 auto_added_page_size = True
-            
+
+        params = encode_structured_params(params)
+
         try:
             response = self.client.session.get(
                 endpoint_base,
@@ -444,6 +468,83 @@ class ReadOnlyResourceBase:
         return self._get(
             endpoint_base=f"{self.endpoint_base}/{id}", 
             **params)
+
+    def _extract_list_items(self, response: ResponseData) -> List[Any]:
+        """Return the item list of a list response (e.g. ``files`` for ``/files``)."""
+        key = self._list_response_key
+        if key is None:
+            candidates = [k for k, v in vars(response).items() if isinstance(v, list)]
+            if len(candidates) != 1:
+                raise ValueError(
+                    f"Cannot determine the list attribute of the {self.__class__.__name__} "
+                    f"response (candidates: {candidates}); set _list_response_key.")
+            key = candidates[0]
+        return getattr(response, key, None) or []
+
+    def iter_all(self, page_size: int = 100, max_items: Optional[int] = None,
+                 **params: Any) -> Iterator[Any]:
+        """
+        Iterate over all items of a list endpoint, fetching page by page.
+
+        Pages are requested lazily until the API returns an empty or short
+        page, the reported ``quantity`` is reached, or ``max_items`` items
+        were yielded. Non-paged resources are fetched with a single request.
+
+        Args:
+            page_size: Items per request (the files endpoint allows up to 500)
+            max_items: Optional upper bound of yielded items
+            **params: Query parameters passed to :meth:`get` (for example
+                ``filter``, ``sortBy``, ``responseFields``). A given ``page``
+                is used as start page.
+
+        Yields:
+            Individual list items (for example file objects).
+
+        Example:
+            ```python
+            files = File(client)
+            for file in files.iter_all(filter={"filterType": "fileName", "term": "cat"}):
+                print(file.id, file.fileName)
+            ```
+        """
+        if max_items is not None and max_items <= 0:
+            return
+        params.pop("pageSize", None)
+        if not self._paged:
+            params.pop("page", None)
+            items = self._extract_list_items(self.get(**params))
+            yield from (items if max_items is None else items[:max_items])
+            return
+
+        page = int(params.pop("page", 1))
+        yielded = 0
+        previous_first_id = None
+        while True:
+            response = self.get(page=page, pageSize=page_size, **params)
+            items = self._extract_list_items(response)
+            if not items:
+                return
+            first_id = getattr(items[0], "id", None)
+            # Guard against endpoints that silently ignore paging parameters.
+            if first_id is not None and first_id == previous_first_id:
+                return
+            previous_first_id = first_id
+            for item in items:
+                yield item
+                yielded += 1
+                if max_items is not None and yielded >= max_items:
+                    return
+            quantity = getattr(response, "quantity", None)
+            if len(items) < page_size:
+                return
+            if isinstance(quantity, int) and page * page_size >= quantity:
+                return
+            page += 1
+
+    def get_all(self, page_size: int = 100, max_items: Optional[int] = None,
+                **params: Any) -> List[Any]:
+        """Return all items of a list endpoint as a list; see :meth:`iter_all`."""
+        return list(self.iter_all(page_size=page_size, max_items=max_items, **params))
     
     def _parseResponse(self, response: Response, response_cls: type = _ResponseObject) -> ResponseData:
         """
@@ -617,7 +718,7 @@ class ResourceBase(ReadOnlyResourceBase):
         try:
             response = self.client.session.delete(
                 endpoint_base,
-                params=params
+                params=encode_structured_params(params)
             )
         except Exception as ex:
             raise get_response_exception(ex)

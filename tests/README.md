@@ -73,8 +73,11 @@ These do not need network access or credentials:
 ### `test_webhook_parser_generalized.py`
 **Webhook parser** - Verifies the generalized parser against real payload shapes.
 
+### `test_bulk_editing_support.py`
+**Bulk editing support** - Verifies `iter_all()`/`get_all()` paging, JSON encoding of `filter` and metadata maps, `File.update_and_wait()` and the opt-in client retry adapter against a fake session.
+
 ```bash
-python -m unittest tests.response_fields_injection_checks tests.test_webhook_parser_generalized -v
+python -m unittest tests.response_fields_injection_checks tests.test_webhook_parser_generalized tests.test_bulk_editing_support -v
 ```
 
 ## Test Configuration

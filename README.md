@@ -61,7 +61,7 @@ python tests/integration_tests.py
 python tests/quick_test.py
 
 # Offline unit tests (no live environment required)
-python -m unittest tests.response_fields_injection_checks tests.test_webhook_parser_generalized -v
+python -m unittest tests.response_fields_injection_checks tests.test_webhook_parser_generalized tests.test_bulk_editing_support -v
 ```
 
 ```python
@@ -267,7 +267,19 @@ user_info = users.get(user_id)
 
 ### Pagination
 
-List requests page automatically for endpoints that support it. Paging is disabled per resource via the `_paged` flag for endpoints that do not: `DownloadFormat`, `FileState`, `LicenseRelease`, `ModelRelease`, `Portal`, `PropertyRelease` (and the `PortalPage` / `PortalUser` sub-endpoints).
+List requests page automatically for endpoints that support it (default: first page, 50 items). Paging is disabled per resource via the `_paged` flag for endpoints that do not: `DownloadFormat`, `FileState`, `LicenseRelease`, `ModelRelease`, `Portal`, `PropertyRelease` (and the `PortalPage` / `PortalUser` sub-endpoints).
+
+To load every page, use `iter_all()` (lazy generator) or `get_all()` (list). They stop at the reported `quantity`, at a short page, or after `max_items`:
+
+```python
+files = File(client)
+for file in files.iter_all(page_size=200, filter={"filterType": "fileName", "term": "cat"}):
+    print(file.id, file.fileName)
+
+all_fields = CustomMetadata(client).get_all()
+```
+
+Object-valued parameters such as `filter` are JSON-encoded automatically, for GET and DELETE query strings as well as `File.update()` form fields.
 
 ## 🔔 Webhooks
 
@@ -368,6 +380,9 @@ client = Client.create_client("api-key", "host.com", logger=logger)
 # Response field filtering
 files = File(client)
 files.set_response_fields(['id', 'fileName', 'fileSize'])
+
+# Retry GET/PUT/DELETE on 429/503 and connection errors (opt-in, honours Retry-After)
+client = Client.create_client("api-key", "host.com", max_retries=3, retry_backoff_factor=1.0)
 
 # Custom timeouts for job tracking
 result = files.upload_and_wait(
@@ -489,7 +504,7 @@ pip install -r requirements.txt
 python -m compileall -q pixxio_client
 
 # Run the offline unit tests
-python -m unittest tests.response_fields_injection_checks tests.test_webhook_parser_generalized -v
+python -m unittest tests.response_fields_injection_checks tests.test_webhook_parser_generalized tests.test_bulk_editing_support -v
 
 # Build a wheel into dist/ (Windows)
 build_wheel.bat

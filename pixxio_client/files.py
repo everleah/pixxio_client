@@ -4,8 +4,9 @@ import os
 
 from typing import Optional, Any
 
-from ._base import ResourceBase, ResourceUploadMixin, ResourceJobMixin, _ResponseObject
-from .pixxio_types import PIXXIOId, ResponseData
+from ._base import ResourceBase, ResourceUploadMixin, ResourceJobMixin, _ResponseObject, encode_structured_params
+from .exceptions import JobFailedException
+from .pixxio_types import PIXXIOId, ResponseData, JobCallback
 
 class FileUpdateBuilder:
     """
@@ -582,6 +583,7 @@ class File(ResourceBase, ResourceUploadMixin, ResourceJobMixin):
     """
     
     NAME = "files"
+    _list_response_key = "files"
     _response_field_filter = {
         "GET_LIST": ["uploadDate", "modifyDate", "createDate", "id", "fileName", "fileExtension", "fileType", "subject", "description", "width", "height", "pixel", "colorspace", "orientation", "fileSize", "md5sum", "keywords", "keywordsRecognition", "rating", "rotation", "fileState", "isDownloadLocked", "isArchived", "isRotatable", "isConvertible", "isCheckedOut", "isMainVersion", "hasSubversions", "originalFileURL", "previewFileURL", "clipFileURL", "modifiedPreviewFileURLs", "user", "creator", "location", "directory", "permissions", "metadataFields", "dominantColor", "variantStack", "languageCodes", "isMarked", "staticCollections", "versions", "importantMetadata", "licenseReleases", "modelReleases", "propertyReleases"],
         "GET_SINGLE": ["uploadDate", "modifyDate", "createDate", "id", "fileName", "fileExtension", "fileType", "subject", "description", "width", "height", "pixel", "colorspace", "orientation", "fileSize", "md5sum", "keywords", "keywordsRecognition", "rating", "rotation", "fileState", "isDownloadLocked", "isArchived", "isRotatable", "isConvertible", "isCheckedOut", "isMainVersion", "hasSubversions", "originalFileURL", "previewFileURL", "clipFileURL", "modifiedPreviewFileURLs", "user", "creator", "location", "directory", "permissions", "metadataFields", "dominantColor", "variantStack", "languageCodes", "isMarked", "staticCollections", "versions", "metadata", "importantMetadata", "unimportantMetadata", "usePanoramaViewer", "licenseReleases", "modelReleases", "propertyReleases"]
@@ -780,10 +782,11 @@ class File(ResourceBase, ResourceUploadMixin, ResourceJobMixin):
         """
         Update existing files (metadata, attributes, etc) using the filesPut endpoint.
         Accepts all documented fields as kwargs. At least one of ids or filter is required.
-        Automatically JSON-encodes metadataStandard and metadataCustom if needed.
-        Returns jobID and success.
+        Object-valued fields (``filter``, ``location``, ``metadataCustom``,
+        ``metadataStandard``, ``metadataText`` and other metadata maps) are
+        JSON-encoded automatically; pre-encoded strings are passed through.
+        Returns success and, only when more than one file is updated, a jobID.
         """
-        import json
         # Enforce mutual exclusion and required fields
         if (ids is None and filter is None) or (ids is not None and filter is not None):
             raise ValueError("Exactly one of 'ids' or 'filter' must be provided.")
@@ -792,12 +795,55 @@ class File(ResourceBase, ResourceUploadMixin, ResourceJobMixin):
             form_data["ids"] = ids
         if filter is not None:
             form_data["filter"] = filter
-        # JSON-encode metadata fields if needed
-        for key in ("metadataStandard", "metadataCustom"):
-            if key in form_data and not isinstance(form_data[key], str):
-                form_data[key] = json.dumps(form_data[key])
+        form_data = encode_structured_params(form_data)
         # Use PUT with multipart/form-data at the collection endpoint
         return self._put(endpoint_base=self.endpoint_base, form_data=form_data)
+
+    def update_and_wait(
+        self,
+        ids=None,
+        filter=None,
+        timeout: int = 300,
+        poll_interval: float = 2.0,
+        callback: Optional[JobCallback] = None,
+        **fields
+    ) -> ResponseData:
+        """
+        Update files via filesPut and wait for the background job if one is started.
+
+        The API updates a single file synchronously and starts a job only when
+        more than one file is affected. This method hides that difference.
+
+        Args:
+            ids: List of file IDs (exclusive with ``filter``)
+            filter: Files filter object (exclusive with ``ids``)
+            timeout: Maximum seconds to wait for the job
+            poll_interval: Seconds between job status polls
+            callback: Optional callable receiving the job object after each poll
+            **fields: filesPut fields, see :meth:`update` and :class:`FileUpdateBuilder`
+
+        Returns:
+            ResponseData: The finished job object, or the direct filesPut
+            response when no job was started.
+
+        Raises:
+            JobTimeoutException: If the job does not finish within ``timeout``
+            JobFailedException: If the finished job reports ``success = False``
+        """
+        response = self.update(ids=ids, filter=filter, **fields)
+        job_id = self._extract_job_id(response)
+        if not job_id:
+            return response
+        job = self._get_job_resource().wait_for_completion(
+            job_id=job_id,
+            timeout=timeout,
+            poll_interval=poll_interval,
+            callback=callback,
+        )
+        if getattr(job, "success", None) is False:
+            error = getattr(job, "error", None)
+            raise JobFailedException(job_id, str(error) if error else None)
+        return job
 
     def put(
         self,

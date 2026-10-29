@@ -12,6 +12,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- `iter_all()` and `get_all()` on all resources to load every page of list endpoints (stops at `quantity`, short pages or `max_items`; guards against endpoints that ignore paging).
+- `File.update_and_wait()` updates files and waits for the background job, which the API starts only when more than one file is updated; raises `JobFailedException` for failed jobs.
+- Opt-in `max_retries` / `retry_backoff_factor` on `Client` and `Client.create_client()` to retry GET/PUT/DELETE on HTTP 429/503 and connection errors, honouring `Retry-After`.
+
+### Fixed
+- Object-valued parameters such as `filter` are now JSON-encoded in GET and DELETE query strings, as the API expects.
+- `File.update()` now JSON-encodes all object-valued form fields (`filter`, `location`, `metadataText`, `metadataSelection` and other metadata maps), not only `metadataStandard` / `metadataCustom`.
+- `CustomMetadataBuilder` now loads all custom metadata fields instead of only the first page of 50.
+
 ## [0.4.2] - 2026-10-14
 
 First public PyPI release. Includes the earlier internal `0.4.2` changes and the

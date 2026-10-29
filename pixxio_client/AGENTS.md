@@ -15,6 +15,9 @@
 - Route all HTTP calls through client.session.
 - Use objectified responses and preserve 204 -> SimpleNamespace(success=True).
 - Keep endpoint paging behavior aligned with API constraints; disable paging per resource when API rejects paging params.
+- Set `_list_response_key` on list resources whose response holds more than one list attribute so `iter_all()`/`get_all()` find the items.
+- Pass object-valued query/form parameters (for example `filter`, metadata maps) through `encode_structured_params` in `_base.py`; the API expects them as JSON strings.
+- Keep client-side retries opt-in (`Client(max_retries=...)`) and never retry POST.
 
 ## Work Guidance
 - Validate endpoint behavior against openapi.json before changes.
@@ -24,6 +27,7 @@
 
 ## Verification
 - Run targeted tests covering changed resources.
+- Offline checks: `python -m unittest tests.response_fields_injection_checks tests.test_webhook_parser_generalized tests.test_bulk_editing_support -v`.
 - For broad client changes, run pytest from repository root.
 
 ## Child DOX Index

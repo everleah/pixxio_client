@@ -34,8 +34,13 @@ import logging
 from typing import Optional
 import requests
 from requests import Session
+from requests.adapters import HTTPAdapter
+from urllib3.util.retry import Retry
 
 from .pixxio_types import APIKey
+
+# Status codes signalling that a request was not processed and may be resent.
+RETRY_STATUS_CODES = (429, 503)
 
 
 class Authentication:
@@ -124,7 +129,8 @@ class Client:
     
     def __init__(self, authentication: Authentication, host: str, 
                  port: Optional[int] = None, version: str = 'v1', 
-                 logger: Optional[logging.Logger] = None) -> None:
+                 logger: Optional[logging.Logger] = None,
+                 max_retries: int = 0, retry_backoff_factor: float = 1.0) -> None:
         """
         Initialize the PIXXIO API client.
         
@@ -134,6 +140,11 @@ class Client:
             port: Optional port number for API connections
             version: API version to use (default: "v1")
             logger: Optional custom logger instance
+            max_retries: Retries for GET/PUT/DELETE requests answered with
+                429 or 503 and for connection errors (default: 0 = disabled).
+                ``Retry-After`` headers are respected. POST is never retried.
+            retry_backoff_factor: Exponential backoff factor between retries
+                when no ``Retry-After`` header is sent (default: 1.0)
             
         Note:
             The host parameter should not include the protocol (http/https).
@@ -145,6 +156,8 @@ class Client:
         self._host = host
         self._port = port
         self._version = version
+        self._max_retries = max_retries
+        self._retry_backoff_factor = retry_backoff_factor
         
         if logger is None:
             self.logger = logging.getLogger("pixx!o client")
@@ -162,7 +175,8 @@ class Client:
         self._session: Optional[Session] = None
     
     @staticmethod
-    def create_client(api_key: APIKey, host: str) -> 'Client':
+    def create_client(api_key: APIKey, host: str, max_retries: int = 0,
+                      retry_backoff_factor: float = 1.0) -> 'Client':
         """
         Factory method to create a client instance with API key authentication.
         
@@ -174,6 +188,8 @@ class Client:
         Args:
             api_key: Your PIXXIO API key (Bearer token)
             host: PIXXIO host domain (e.g., "company.pixxio.com")
+            max_retries: See :class:`Client` (default: 0 = disabled)
+            retry_backoff_factor: See :class:`Client` (default: 1.0)
 
         Returns:
             Client: Fully configured client ready for API operations
@@ -191,7 +207,9 @@ class Client:
         """
         return Client(
             host=host, 
-            authentication=Authentication(api_key))
+            authentication=Authentication(api_key),
+            max_retries=max_retries,
+            retry_backoff_factor=retry_backoff_factor)
         
     @property
     def session(self) -> Session:
@@ -213,6 +231,22 @@ class Client:
         if self._session is None:
             self._session = requests.Session()
             self.authentication.authenticate_client(self._session)
+            if self._max_retries > 0:
+                retry = Retry(
+                    total=self._max_retries,
+                    connect=self._max_retries,
+                    read=0,
+                    status=self._max_retries,
+                    other=0,
+                    status_forcelist=RETRY_STATUS_CODES,
+                    allowed_methods=frozenset({"GET", "PUT", "DELETE"}),
+                    backoff_factor=self._retry_backoff_factor,
+                    respect_retry_after_header=True,
+                    raise_on_status=False,
+                )
+                adapter = HTTPAdapter(max_retries=retry)
+                self._session.mount("https://", adapter)
+                self._session.mount("http://", adapter)
         return self._session
     
     def reset(self) -> None:
