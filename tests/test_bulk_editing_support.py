@@ -8,7 +8,7 @@ from requests.adapters import HTTPAdapter
 from pixxio_client import Client
 from pixxio_client.exceptions import JobFailedException
 from pixxio_client.files import File
-from pixxio_client.metadata import CustomMetadataBuilder, StandardMetadata
+from pixxio_client.metadata import CustomMetadata, CustomMetadataBuilder, StandardMetadata
 
 
 class FakeResponse:
@@ -104,6 +104,20 @@ class IterAllTests(unittest.TestCase):
         self.assertTrue(builder.is_valid_field_by_id(120))
         self.assertTrue(builder.is_valid_field_name("f101"))
 
+    def test_custom_metadata_clamps_page_size_to_endpoint_limit(self):
+        client = make_client(paged_handler(
+            total=120, list_key="customMetadata", name="f", editType=""))
+        items = CustomMetadata(client).get_all(page_size=100)
+        self.assertEqual(len(items), 120)
+        self.assertEqual([c[2]["params"]["pageSize"] for c in client.session.calls],
+                         [50, 50, 50])
+
+    def test_files_clamps_page_size_to_endpoint_limit(self):
+        client = make_client(paged_handler(total=600))
+        items = File(client).get_all(page_size=1000)
+        self.assertEqual(len(items), 600)
+        self.assertEqual(client.session.calls[0][2]["params"]["pageSize"], 500)
+
 
 class StructuredParamTests(unittest.TestCase):
     def test_get_encodes_filter_as_json(self):
@@ -155,6 +169,50 @@ class UpdateAndWaitTests(unittest.TestCase):
         client = make_client(job_handler(job_success=False))
         with self.assertRaises(JobFailedException):
             File(client).update_and_wait(ids=[1, 2], description="x", poll_interval=0)
+
+
+class DeleteAndWaitTests(unittest.TestCase):
+    def test_without_job_returns_response(self):
+        client = make_client(lambda m, u, k: {"success": True})
+        result = File(client).delete_and_wait(ids=[1])
+        self.assertIs(result.success, True)
+        self.assertEqual(len(client.session.calls), 1)
+
+    def test_waits_for_delete_job_and_exposes_deleted_ids(self):
+        def handler(method, url, kwargs):
+            if method == "DELETE":
+                return {"success": True, "jobID": 42}
+            return {"success": True, "job": {
+                "id": 42, "jobType": "filesDelete", "isFinished": True,
+                "success": True, "error": None,
+                "finishedJobData": {"deletedFileIDs": [1, 2], "notDeletedFileIDs": []},
+            }}
+
+        client = make_client(handler)
+        job = File(client).delete_and_wait(ids=[1, 2], poll_interval=0)
+        self.assertEqual(job.id, 42)
+        self.assertEqual(list(job.finishedJobData.deletedFileIDs), [1, 2])
+        self.assertEqual(list(job.finishedJobData.notDeletedFileIDs), [])
+        self.assertTrue(any(c[1].endswith("/jobs/42") for c in client.session.calls))
+
+    def test_raises_on_failed_delete_job(self):
+        def handler(method, url, kwargs):
+            if method == "DELETE":
+                return {"success": True, "jobID": 42}
+            return {"success": True, "job": {
+                "id": 42, "isFinished": True, "success": False, "error": "boom",
+            }}
+
+        client = make_client(handler)
+        with self.assertRaises(JobFailedException):
+            File(client).delete_and_wait(ids=[1, 2], poll_interval=0)
+
+    def test_requires_exactly_one_selector(self):
+        client = make_client(lambda m, u, k: {"success": True})
+        with self.assertRaises(ValueError):
+            File(client).delete_and_wait()
+        with self.assertRaises(ValueError):
+            File(client).delete_and_wait(ids=[1], filter={"filterType": "files"})
 
 
 class RetryTests(unittest.TestCase):

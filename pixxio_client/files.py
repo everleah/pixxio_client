@@ -583,6 +583,8 @@ class File(ResourceBase, ResourceUploadMixin, ResourceJobMixin):
     """
     
     NAME = "files"
+    # The API rejects pageSize values above 500 for this endpoint.
+    _max_page_size = 500
     _list_response_key = "files"
     _response_field_filter = {
         "GET_LIST": ["uploadDate", "modifyDate", "createDate", "id", "fileName", "fileExtension", "fileType", "subject", "description", "width", "height", "pixel", "colorspace", "orientation", "fileSize", "md5sum", "keywords", "keywordsRecognition", "rating", "rotation", "fileState", "isDownloadLocked", "isArchived", "isRotatable", "isConvertible", "isCheckedOut", "isMainVersion", "hasSubversions", "originalFileURL", "previewFileURL", "clipFileURL", "modifiedPreviewFileURLs", "user", "creator", "location", "directory", "permissions", "metadataFields", "dominantColor", "variantStack", "languageCodes", "isMarked", "staticCollections", "versions", "importantMetadata", "licenseReleases", "modelReleases", "propertyReleases"],
@@ -882,6 +884,11 @@ class File(ResourceBase, ResourceUploadMixin, ResourceJobMixin):
 
         Exactly one of ``ids`` or ``filter`` must be provided.
 
+        The API deletes a single file synchronously and returns only
+        ``success``. When more than one file is affected it starts a
+        background job and returns ``jobID`` instead; use
+        :meth:`delete_and_wait` to wait for that job and get the deleted IDs.
+
         Args:
             ids: List of file IDs to delete
             filter: Filter object selecting files to delete
@@ -889,7 +896,8 @@ class File(ResourceBase, ResourceUploadMixin, ResourceJobMixin):
             **params: Additional query parameters
 
         Returns:
-            ResponseData: Deletion result (e.g. deletedFileIDs/notDeletedFileIDs)
+            ResponseData: ``{"success": True}`` for a single file, or
+            ``{"success": True, "jobID": <id>}`` for a background job.
         """
         # Enforce same contract as filesPut: exactly one selector is required.
         if (ids is None and filter is None) or (ids is not None and filter is not None):
@@ -908,6 +916,62 @@ class File(ResourceBase, ResourceUploadMixin, ResourceJobMixin):
             delete_params["showSubversions"] = show_subversions
 
         return self._delete(endpoint_base=self.endpoint_base, **delete_params)
+
+    def delete_and_wait(
+        self,
+        ids=None,
+        filter=None,
+        show_subversions: Optional[bool] = None,
+        timeout: int = 300,
+        poll_interval: float = 2.0,
+        callback: Optional[JobCallback] = None,
+        **params: Any,
+    ) -> ResponseData:
+        """
+        Delete files via filesDelete and wait for the background job if one is started.
+
+        Deletes a single file synchronously. For multiple files the API starts a
+        job whose final record carries the outcome in ``finishedJobData``::
+
+            {"deletedFileIDs": [1724287347, 963555328], "notDeletedFileIDs": []}
+
+        Args:
+            ids: List of file IDs to delete (exclusive with ``filter``)
+            filter: Files filter object (exclusive with ``ids``)
+            show_subversions: Maps to API parameter ``showSubversions``
+            timeout: Maximum seconds to wait for the job
+            poll_interval: Seconds between job status polls
+            callback: Optional callable receiving the job object after each poll
+            **params: Additional query parameters forwarded to :meth:`delete`
+
+        Returns:
+            ResponseData: The finished job object (including ``finishedJobData``),
+            or the direct filesDelete response when no job was started. Check
+            ``finishedJobData.notDeletedFileIDs`` for partial failures.
+
+        Raises:
+            JobTimeoutException: If the job does not finish within ``timeout``
+            JobFailedException: If the finished job reports ``success = False``
+        """
+        response = self.delete(
+            ids=ids,
+            filter=filter,
+            show_subversions=show_subversions,
+            **params,
+        )
+        job_id = self._extract_job_id(response)
+        if not job_id:
+            return response
+        job = self._get_job_resource().wait_for_completion(
+            job_id=job_id,
+            timeout=timeout,
+            poll_interval=poll_interval,
+            callback=callback,
+        )
+        if getattr(job, "success", None) is False:
+            error = getattr(job, "error", None)
+            raise JobFailedException(job_id, str(error) if error else None)
+        return job
         
     
     

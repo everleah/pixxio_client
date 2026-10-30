@@ -192,6 +192,7 @@ class ReadOnlyResourceBase:
     """
     _paged: bool = True
     _list_response_key: Optional[str] = None  # list attribute of list responses; auto-detected if None
+    _max_page_size: Optional[int] = None  # server-side pageSize limit of the endpoint, if any
     _response_field_filter = None  # type: Optional[List[str] | Dict[str, Optional[List[str]]]]
     _get_single_response_cls: type = _ResponseObject 
     _get_list_response_cls: type = _ResponseObject      
@@ -510,6 +511,8 @@ class ReadOnlyResourceBase:
         if max_items is not None and max_items <= 0:
             return
         params.pop("pageSize", None)
+        if self._max_page_size is not None:
+            page_size = min(page_size, self._max_page_size)
         if not self._paged:
             params.pop("page", None)
             items = self._extract_list_items(self.get(**params))

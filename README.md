@@ -5,7 +5,7 @@ A comprehensive Python client library for the PIXXIO Digital Asset Management (D
 [![Python Version](https://img.shields.io/badge/python-3.10+-blue.svg)](https://python.org)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 [![API Version](https://img.shields.io/badge/PIXXIO%20API-v1-orange.svg)](https://api.pixxio.com/docs)
-[![Version](https://img.shields.io/badge/version-0.4.3-orange.svg)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-0.4.4-orange.svg)](CHANGELOG.md)
 
 ## ✨ Features
 
@@ -307,6 +307,20 @@ All selected IDs receive the **same values**. For different values per asset, se
 separate updates or group IDs with identical payloads. The client does not calculate
 cell-level differences or detect editing conflicts; callers must submit only the
 intended changes. A failed background job raises `JobFailedException`.
+
+### Bulk deletes
+
+The API deletes a single file synchronously and starts a job only for several files.
+`File.delete_and_wait()` hides that difference and returns the deleted IDs:
+
+```python
+job = files.delete_and_wait(ids=[4711, 4712], timeout=900)
+print(job.finishedJobData.deletedFileIDs)
+print(job.finishedJobData.notDeletedFileIDs)
+```
+
+`File.delete()` itself returns only `{"success": True}` (single file) or
+`{"success": True, "jobID": ...}` (background job) and never the deleted IDs.
 
 ## 🔔 Webhooks
 

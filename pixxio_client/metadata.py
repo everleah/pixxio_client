@@ -6,6 +6,8 @@ from ._base import ResourceBase, ReadOnlyResourceBase
 class CustomMetadata(ResourceBase):
     _paged: bool = True
     _list_response_key = "customMetadata"
+    # The API rejects pageSize values above 50 for this endpoint.
+    _max_page_size = 50
     _response_field_filter = [ "id", "createDate", "modifyDate", "name", "editType", "selectionOptions", "translationState"]
     NAME = "metadata/custom"
 

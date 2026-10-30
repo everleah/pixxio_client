@@ -15,6 +15,8 @@
 - Route all HTTP calls through client.session.
 - Use objectified responses and preserve 204 -> SimpleNamespace(success=True).
 - Keep endpoint paging behavior aligned with API constraints; disable paging per resource when API rejects paging params.
+- Declare endpoint `pageSize` limits as `_max_page_size` on the resource (`files` 500, `metadata/custom` 50); `iter_all()`/`get_all()` clamp to it.
+- `filesDelete` answers `success` for one file and `jobID` for several; use `File.delete_and_wait()` when the deleted IDs are needed, and check `finishedJobData.notDeletedFileIDs` for partial failures.
 - Set `_list_response_key` on list resources whose response holds more than one list attribute so `iter_all()`/`get_all()` find the items.
 - Pass object-valued query/form parameters (for example `filter`, metadata maps) through `encode_structured_params` in `_base.py`; the API expects them as JSON strings.
 - Keep client-side retries opt-in (`Client(max_retries=...)`) and never retry POST.

@@ -10,6 +10,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 > October 2026; the `0.1` and `0.2` sections are retrospective summaries because no
 > per-release record was ever written for them.
 
+## [0.4.4]
+
+### Added
+- `File.delete_and_wait()` deletes files and waits for the background job, returning `finishedJobData.deletedFileIDs` / `notDeletedFileIDs`; a single file is still deleted synchronously and returned directly.
+
+### Fixed
+- List endpoints clamp `pageSize` to the endpoint limit declared as `_max_page_size` (500 for `files`, 50 for `metadata/custom`). `CustomMetadata.get_all()` and `CustomMetadataBuilder` previously sent the 100 default and failed with `pageSize maximum requirement of parameter value not met`.
+- `File.delete()` documentation no longer claims that `deletedFileIDs` / `notDeletedFileIDs` are part of the response; the API returns only `success` (single file) or a `jobID`.
+
 ## [0.4.3]
 
 ### Added

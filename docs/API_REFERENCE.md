@@ -108,6 +108,10 @@ Provides async job tracking for long-running operations.
 - `post_and_wait(timeout=300, poll_interval=2.0, **params)` - POST with job tracking
 - `async_post_and_wait(...)` - Async version using asyncio
 
+List endpoints clamp `pageSize` to the endpoint limit declared by the resource
+(`_max_page_size`: 500 for `files`, 50 for `metadata/custom`), so `get_all()` and
+`iter_all()` never send a rejected page size.
+
 ## Resource Classes
 
 ### File
