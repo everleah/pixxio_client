@@ -788,6 +788,11 @@ class File(ResourceBase, ResourceUploadMixin, ResourceJobMixin):
         ``metadataStandard``, ``metadataText`` and other metadata maps) are
         JSON-encoded automatically; pre-encoded strings are passed through.
         Returns success and, only when more than one file is updated, a jobID.
+
+        Warning:
+            filesPut is not atomic: an unknown field makes the request fail, but
+            the valid fields are still written. Validate the payload before
+            sending and read the files back after partial errors.
         """
         # Enforce mutual exclusion and required fields
         if (ids is None and filter is None) or (ids is not None and filter is not None):

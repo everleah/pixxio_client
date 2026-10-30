@@ -303,6 +303,12 @@ class Collection(ResourceBase):
 
     API endpoint: ``/api/v1/collections``
 
+    Note:
+        A single-collection lookup (``get(id)``) does not return ``isDynamic`` and
+        ``filesQuantity``. Request those fields with the list query instead, e.g.
+        ``set_response_fields(["id", "name", "isDynamic", "filesQuantity"])`` plus
+        ``iter_all(searchTerm=...)``.
+
     Available operations:
         - ``get()``              – list all accessible collections
         - ``get(id)``            – retrieve a specific collection by ID

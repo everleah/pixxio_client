@@ -10,6 +10,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 > October 2026; the `0.1` and `0.2` sections are retrospective summaries because no
 > per-release record was ever written for them.
 
+## [0.4.5] - 2026-10-30
+
+### Fixed
+- `Directory` declares `_max_page_size = 20`: the `directories` endpoint rejects larger `pageSize` values ("pageSize maximum requirement of parameter value not met"), so `Directory.get_all()` / `iter_all()` failed with the 100 default.
+- `MetadataValueBuilder` now sends date fields as `YYYY-MM-DD HH:MM:SS`. A plain `date` previously produced `2026-12-31` and a timezone-aware `datetime` produced `2026-12-31T23:45:00+02:00`; both are rejected by the API ("it is no DateTime"). A `date` now becomes midnight and the offset of an aware `datetime` is not sent.
+
+### Added
+- Offline tests for `MetadataValueBuilder` (date formats, selection name-to-ID mapping, unknown field).
+
+### Documentation
+- `File.upload()` notes that `fileName` is sent without the extension (`fileNameWithExtension` sets the full name).
+- `File.update()` warns that `filesPut` is not atomic: unknown fields fail the request but valid fields are still written.
+- `Collection` notes that a single-collection lookup does not return `isDynamic` / `filesQuantity`.
+
 ## [0.4.4]
 
 ### Added

@@ -30,7 +30,12 @@ class StandardMetadata(ResourceBase):
 class MetadataValueBuilder:
     """Build values to set via files post and put methods.
     works with the results of CustomMetadata and StandardMetadata get methods."""
-    
+
+    # Date fields are written as ``YYYY-MM-DD HH:MM:SS``. The API also accepts a
+    # ``T`` separator and truncates microseconds, but it rejects a plain date
+    # (``2026-12-31``) and any ISO offset.
+    DATE_FORMAT = "%Y-%m-%d %H:%M:%S"
+
     def __init__(self, metadata_fields_info: List[SimpleNamespace]):
         self.metadata_fields_info = metadata_fields_info
         self.metadata = []
@@ -48,8 +53,12 @@ class MetadataValueBuilder:
         # Apply any necessary transformations to the value
         # possible editTypes: date, map, focalpoint, orientation, multiselection, language, none, selection, number, text, boolean
         if field.editType == "date":
-            if isinstance(value, date) or isinstance(value, datetime):
-                value = value.isoformat()
+            if isinstance(value, datetime):
+                # Timezone information is not sent: the API expects wall time
+                # in ``YYYY-MM-DD HH:MM:SS`` and rejects offsets.
+                value = value.strftime(self.DATE_FORMAT)
+            elif isinstance(value, date):
+                value = value.strftime("%Y-%m-%d 00:00:00")
         elif field.editType == "multiselection":
             if not isinstance(value, list):
                 value = [value]

@@ -191,6 +191,10 @@ class Directory(ResourceBase):
 
     NAME = "directories"
 
+    # The directories endpoint rejects pageSize values above 20 ("pageSize maximum
+    # requirement of parameter value not met"); the 100 default made get_all() fail.
+    _max_page_size = 20
+
     def list(self, **params: Any) -> ResponseData:
         """
         Convenience alias for list-style directory GET requests.

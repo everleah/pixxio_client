@@ -854,6 +854,10 @@ class ResourceUploadMixin:
         Args:
             file_path: Path to the file to upload
             **form_data: Additional form fields to include with the upload
+
+        Note:
+            ``fileName`` is sent without the extension; the API appends it from the
+            uploaded file. Pass ``fileNameWithExtension`` to set the complete name.
             
         Returns:
             ResponseData: Result of the upload operation

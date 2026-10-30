@@ -2,13 +2,21 @@
 
 import json
 import unittest
+from datetime import date, datetime, timedelta, timezone
+from types import SimpleNamespace
 
 from requests.adapters import HTTPAdapter
 
 from pixxio_client import Client
+from pixxio_client.directories import Directory
 from pixxio_client.exceptions import JobFailedException
 from pixxio_client.files import File
-from pixxio_client.metadata import CustomMetadata, CustomMetadataBuilder, StandardMetadata
+from pixxio_client.metadata import (
+    CustomMetadata,
+    CustomMetadataBuilder,
+    MetadataValueBuilder,
+    StandardMetadata,
+)
 
 
 class FakeResponse:
@@ -118,6 +126,12 @@ class IterAllTests(unittest.TestCase):
         self.assertEqual(len(items), 600)
         self.assertEqual(client.session.calls[0][2]["params"]["pageSize"], 500)
 
+    def test_directories_clamp_page_size_to_endpoint_limit(self):
+        client = make_client(paged_handler(total=45, list_key="directories", name="d"))
+        items = Directory(client).get_all()
+        self.assertEqual(len(items), 45)
+        self.assertEqual({c[2]["params"]["pageSize"] for c in client.session.calls}, {20})
+
 
 class StructuredParamTests(unittest.TestCase):
     def test_get_encodes_filter_as_json(self):
@@ -225,6 +239,47 @@ class RetryTests(unittest.TestCase):
         self.assertEqual(adapter.max_retries.total, 3)
         self.assertIn(429, adapter.max_retries.status_forcelist)
         self.assertNotIn("POST", adapter.max_retries.allowed_methods)
+
+
+class MetadataValueTests(unittest.TestCase):
+    """Date values must use the only format the API accepts: YYYY-MM-DD HH:MM:SS."""
+
+    def _builder(self, edit_type="date"):
+        field = SimpleNamespace(id=7, name="Datum", editType=edit_type, selectionOptions=[])
+        return MetadataValueBuilder([field])
+
+    def test_datetime_uses_api_format(self):
+        builder = self._builder()
+        builder.append("replace", 7, datetime(2026, 12, 31, 23, 45, 0))
+        self.assertEqual(builder.build(),
+                         [{"action": "replace", "id": 7, "value": "2026-12-31 23:45:00"}])
+
+    def test_aware_datetime_keeps_wall_time(self):
+        builder = self._builder()
+        builder.append("replace", 7, datetime(2026, 12, 31, 23, 45, tzinfo=timezone(timedelta(hours=2))))
+        self.assertEqual(builder.build()[0]["value"], "2026-12-31 23:45:00")
+
+    def test_plain_date_gets_midnight(self):
+        builder = self._builder()
+        builder.append("replace", 7, date(2026, 12, 31))
+        self.assertEqual(builder.build()[0]["value"], "2026-12-31 00:00:00")
+
+    def test_api_string_is_passed_through(self):
+        builder = self._builder()
+        builder.append("replace", 7, "2026-12-31 23:45:00")
+        self.assertEqual(builder.build()[0]["value"], "2026-12-31 23:45:00")
+
+    def test_unknown_field_is_rejected(self):
+        builder = self._builder()
+        with self.assertRaises(ValueError):
+            builder.append("replace", 999, "2026-12-31 23:45:00")
+
+    def test_selection_name_is_mapped_to_id(self):
+        field = SimpleNamespace(id=8, name="Kampagne", editType="selection",
+                                selectionOptions=[{"id": 11, "name": "Sommer"}])
+        builder = MetadataValueBuilder([field])
+        builder.append("replace", 8, "Sommer")
+        self.assertEqual(builder.build()[0]["value"], 11)
 
 
 if __name__ == "__main__":
