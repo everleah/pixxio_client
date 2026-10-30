@@ -10,7 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 > October 2026; the `0.1` and `0.2` sections are retrospective summaries because no
 > per-release record was ever written for them.
 
-## [Unreleased]
+## [0.4.3]
 
 ### Added
 - `iter_all()` and `get_all()` on all resources to load every page of list endpoints (stops at `quantity`, short pages or `max_items`; guards against endpoints that ignore paging).
